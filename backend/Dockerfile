@@ -1,14 +1,13 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-RUN npm run build
-
-EXPOSE 3000
-
-CMD ["npm", "run", "start:prod"]
+RUN npx prisma generate

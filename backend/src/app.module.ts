@@ -1,10 +1,23 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { ProtectedController } from './protected.controller';
+import { PrismaService } from './prisma.service';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
-    imports: [],
-    controllers: [HealthController],
-    providers: [HealthService],
+  imports: [
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_ACCESS_SECRET || 'dev_access_secret',
+      signOptions: { expiresIn: '15m' },
+    }),
+  ],
+  controllers: [HealthController, AuthController, ProtectedController],
+  providers: [HealthService, AuthService, PrismaService, JwtStrategy],
 })
 export class AppModule {}
