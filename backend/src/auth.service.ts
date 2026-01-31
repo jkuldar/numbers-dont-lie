@@ -40,10 +40,15 @@ export class AuthService {
     return { message: 'User registered. Check your email for verification link.' };
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, twoFactorToken?: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
       throw new Error('User not found');
+    }
+
+    // Check if OAuth user trying to login with password
+    if (user.oauthProvider && !user.passwordHash) {
+      throw new Error(`Please login with ${user.oauthProvider}`);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
@@ -55,18 +60,36 @@ export class AuthService {
       throw new Error('Email not verified');
     }
 
+    // Check 2FA if enabled
+    if (user.twoFactorEnabled) {
+      if (!twoFactorToken) {
+        return { requires2FA: true, message: '2FA token required' };
+      }
+
+      // 2FA verification will be handled by separate endpoint
+      // For now, just indicate that 2FA is needed
+    }
+
+    return this.generateTokens(user.id, user.email);
+  }
+
+  async loginWithOAuth(user: any) {
+    return this.generateTokens(user.id, user.email);
+  }
+
+  async generateTokens(userId: string, email: string) {
     const accessToken = this.jwtService.sign(
-      { sub: user.id, email: user.email },
+      { sub: userId, email },
       { expiresIn: '15m' },
     );
 
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, email: user.email },
+      { sub: userId, email },
       { expiresIn: '7d' },
     );
 
     await this.prisma.user.update({
-      where: { id: user.id },
+      where: { id: userId },
       data: { refreshToken },
     });
 
@@ -112,6 +135,54 @@ export class AuthService {
     }
   }
 
+  async requestPasswordReset(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    
+    if (!user) {
+      // Don't reveal if user exists
+      return { message: 'If the email exists, a reset link has been sent' };
+    }
+
+    if (user.oauthProvider && !user.passwordHash) {
+      throw new Error('OAuth users cannot reset password');
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken, resetTokenExpiry },
+    });
+
+    await this.sendPasswordResetEmail(email, resetToken);
+
+    return { message: 'If the email exists, a reset link has been sent' };
+  }
+
+  async resetPassword(resetToken: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { resetToken },
+    });
+
+    if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    return { message: 'Password reset successfully' };
+  }
+
   private async sendVerificationEmail(email: string, code: string) {
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?code=${code}`;
 
@@ -124,7 +195,26 @@ export class AuthService {
       });
     } catch (error) {
       console.error('Email send failed:', error);
-      // In dev, just log it; in prod, you might want to handle this differently
+    }
+  }
+
+  private async sendPasswordResetEmail(email: string, resetToken: string) {
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+
+    try {
+      await this.mailTransporter.sendMail({
+        from: process.env.SMTP_FROM || 'noreply@wellness.local',
+        to: email,
+        subject: 'Password Reset Request',
+        html: `
+          <p>You requested a password reset.</p>
+          <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+          <p>This link expires in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `,
+      });
+    } catch (error) {
+      console.error('Email send failed:', error);
     }
   }
 }

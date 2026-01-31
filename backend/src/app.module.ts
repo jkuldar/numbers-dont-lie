@@ -8,6 +8,10 @@ import { AuthService } from './auth.service';
 import { ProtectedController } from './protected.controller';
 import { PrismaService } from './prisma.service';
 import { JwtStrategy } from './jwt.strategy';
+import { GoogleStrategy } from './google.strategy';
+import { GithubStrategy } from './github.strategy';
+import { EncryptionService } from './encryption.service';
+import { TwoFAService } from './twofa.service';
 
 @Module({
   imports: [
@@ -18,6 +22,15 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [HealthController, AuthController, ProtectedController],
-  providers: [HealthService, AuthService, PrismaService, JwtStrategy],
+  providers: [
+    HealthService,
+    AuthService,
+    PrismaService,
+    JwtStrategy,
+    GoogleStrategy,
+    GithubStrategy,
+    EncryptionService,
+    TwoFAService,
+  ],
 })
 export class AppModule {}
