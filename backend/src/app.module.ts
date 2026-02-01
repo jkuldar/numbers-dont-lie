@@ -12,6 +12,10 @@ import { GoogleStrategy } from './google.strategy';
 import { GithubStrategy } from './github.strategy';
 import { EncryptionService } from './encryption.service';
 import { TwoFAService } from './twofa.service';
+import { HealthProfileController } from './health-profile.controller';
+import { HealthProfileService } from './health-profile.service';
+import { PrivacySettingsController } from './privacy-settings.controller';
+import { PrivacySettingsService } from './privacy-settings.service';
 
 @Module({
   imports: [
@@ -21,7 +25,13 @@ import { TwoFAService } from './twofa.service';
       signOptions: { expiresIn: '15m' },
     }),
   ],
-  controllers: [HealthController, AuthController, ProtectedController],
+  controllers: [
+    HealthController, 
+    AuthController, 
+    ProtectedController,
+    HealthProfileController,
+    PrivacySettingsController,
+  ],
   providers: [
     HealthService,
     AuthService,
@@ -31,6 +41,8 @@ import { TwoFAService } from './twofa.service';
     GithubStrategy,
     EncryptionService,
     TwoFAService,
+    HealthProfileService,
+    PrivacySettingsService,
   ],
 })
 export class AppModule {}

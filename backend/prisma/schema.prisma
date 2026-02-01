@@ -30,6 +30,89 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   
-  // Future health data will be stored encrypted
+  // Relations
+  healthProfile       HealthProfile?
+  weightHistory       WeightHistory[]
+  privacySettings     PrivacySettings?
+  
   @@map("users")
+}
+
+model HealthProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Consent
+  consentGiven          Boolean  @default(false)
+  consentTimestamp      DateTime?
+  
+  // Demographics (encrypted)
+  age                   Int?
+  gender                String?  // 'male', 'female', 'other', 'prefer_not_to_say'
+  
+  // Physical (normalized to kg, cm)
+  heightCm              Float?
+  currentWeightKg       Float?
+  targetWeightKg        Float?
+  
+  // Lifestyle
+  activityLevel         String?  // 'sedentary', 'light', 'moderate', 'active', 'very_active'
+  sleepHoursPerDay      Float?
+  stressLevel           String?  // 'low', 'moderate', 'high'
+  
+  // Dietary preferences
+  dietaryPreferences    String[] // 'vegetarian', 'vegan', 'pescatarian', 'keto', etc.
+  allergies             String[] // List of allergies
+  restrictions          String[] // List of dietary restrictions
+  
+  // Goals
+  primaryGoal           String?  // 'lose_weight', 'gain_weight', 'maintain', 'build_muscle', 'improve_fitness'
+  targetDate            DateTime?
+  weeklyActivityGoal    Int?     // Times per week
+  
+  // Fitness assessment
+  fitnessLevel          String?  // 'beginner', 'intermediate', 'advanced'
+  medicalConditions     String[] // List of conditions (encrypted)
+  medications           String[] // List of medications (encrypted)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("health_profiles")
+}
+
+model WeightHistory {
+  id                    String   @id @default(uuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  weightKg              Float    // Normalized to kg
+  recordedAt            DateTime @default(now())
+  note                  String?
+  
+  @@unique([userId, recordedAt])
+  @@map("weight_history")
+}
+
+model PrivacySettings {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Data sharing preferences
+  shareWithAI           Boolean  @default(true)
+  shareAnonymousData    Boolean  @default(false)
+  allowDataExport       Boolean  @default(true)
+  
+  // What data to include in AI prompts
+  includeWeight         Boolean  @default(true)
+  includeActivity       Boolean  @default(true)
+  includeDietary        Boolean  @default(true)
+  includeMedical        Boolean  @default(false)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("privacy_settings")
 }
