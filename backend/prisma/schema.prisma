@@ -14,6 +14,7 @@ model User {
   emailVerified       Boolean  @default(false)
   verificationCode    String?  @unique
   refreshToken        String?  // Should be hashed/encrypted
+  lastActivityAt      DateTime @default(now())
   
   // OAuth fields
   oauthProvider       String?  // 'google', 'github', etc.

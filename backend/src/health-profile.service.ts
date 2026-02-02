@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { EncryptionService } from './encryption.service';
 
 @Injectable()
 export class HealthProfileService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryptionService: EncryptionService,
+  ) {}
 
   /**
    * Normalize units to kg and cm before storing
@@ -96,8 +100,8 @@ export class HealthProfileService {
       targetDate: data.targetDate ? new Date(data.targetDate) : null,
       weeklyActivityGoal: data.weeklyActivityGoal,
       fitnessLevel: data.fitnessLevel,
-      medicalConditions: data.medicalConditions || [],
-      medications: data.medications || [],
+      medicalConditions: this.encryptArray(data.medicalConditions),
+      medications: this.encryptArray(data.medications),
     };
 
     // Upsert health profile
@@ -120,9 +124,11 @@ export class HealthProfileService {
    * Get health profile
    */
   async getProfile(userId: string) {
-    return await this.prisma.healthProfile.findUnique({
+    const profile = await this.prisma.healthProfile.findUnique({
       where: { userId },
     });
+
+    return this.decryptProfile(profile);
   }
 
   /**
@@ -177,8 +183,8 @@ export class HealthProfileService {
         message: 'Weight entry added successfully',
         entry,
       };
-    } catch (error) {
-      if (error.code === 'P2002') {
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
         throw new BadRequestException('Duplicate weight entry for this timestamp');
       }
       throw error;
@@ -214,6 +220,8 @@ export class HealthProfileService {
       where: { userId },
     });
 
+    const decryptedHealthProfile = this.decryptProfile(healthProfile);
+
     const weightHistory = await this.prisma.weightHistory.findMany({
       where: { userId },
       orderBy: { recordedAt: 'asc' },
@@ -225,7 +233,7 @@ export class HealthProfileService {
 
     const exportData = {
       user,
-      healthProfile,
+      healthProfile: decryptedHealthProfile,
       weightHistory,
       privacySettings,
       exportedAt: new Date().toISOString(),
@@ -290,5 +298,30 @@ export class HealthProfileService {
     csv += `\nExported at,${data.exportedAt}\n`;
 
     return csv;
+  }
+
+  private encryptArray(values?: string[]): string[] {
+    if (!values || values.length === 0) return [];
+    return values.map((v) => this.encryptionService.encrypt(v));
+  }
+
+  private decryptArray(values?: string[]): string[] {
+    if (!values || values.length === 0) return [];
+    return values.map((v) => {
+      try {
+        return this.encryptionService.decrypt(v);
+      } catch {
+        return v;
+      }
+    });
+  }
+
+  private decryptProfile(profile: any) {
+    if (!profile) return profile;
+    return {
+      ...profile,
+      medicalConditions: this.decryptArray(profile.medicalConditions),
+      medications: this.decryptArray(profile.medications),
+    };
   }
 }

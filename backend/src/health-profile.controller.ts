@@ -11,6 +11,9 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { HealthProfileService } from './health-profile.service';
+import { Request } from 'express';
+
+type AuthedRequest = Request & { user: { userId: string } };
 
 @Controller('health-profile')
 @UseGuards(JwtAuthGuard)
@@ -18,7 +21,7 @@ export class HealthProfileController {
   constructor(private healthProfileService: HealthProfileService) {}
 
   @Post()
-  async createOrUpdateProfile(@Req() req, @Body() body: any) {
+  async createOrUpdateProfile(@Req() req: AuthedRequest, @Body() body: any) {
     const userId = req.user.userId;
     
     // Explicit consent check
@@ -36,7 +39,7 @@ export class HealthProfileController {
   }
 
   @Get()
-  async getProfile(@Req() req) {
+  async getProfile(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     const profile = await this.healthProfileService.getProfile(userId);
     
@@ -48,7 +51,7 @@ export class HealthProfileController {
   }
 
   @Post('weight')
-  async addWeightEntry(@Req() req, @Body() body: { weight: number; unit?: string; note?: string }) {
+  async addWeightEntry(@Req() req: AuthedRequest, @Body() body: { weight: number; unit?: string; note?: string }) {
     const userId = req.user.userId;
     
     if (!body.weight || body.weight <= 0) {
@@ -64,25 +67,25 @@ export class HealthProfileController {
   }
 
   @Get('weight-history')
-  async getWeightHistory(@Req() req) {
+  async getWeightHistory(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     return await this.healthProfileService.getWeightHistory(userId);
   }
 
   @Post('consent')
-  async giveConsent(@Req() req) {
+  async giveConsent(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     return await this.healthProfileService.updateConsent(userId, true);
   }
 
   @Post('revoke-consent')
-  async revokeConsent(@Req() req) {
+  async revokeConsent(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     return await this.healthProfileService.updateConsent(userId, false);
   }
 
   @Get('export')
-  async exportData(@Req() req, @Body() body?: { format?: 'json' | 'csv' }) {
+  async exportData(@Req() req: AuthedRequest, @Body() body?: { format?: 'json' | 'csv' }) {
     const userId = req.user.userId;
     const format = body?.format || 'json';
     

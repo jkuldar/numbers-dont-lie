@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { TwoFAService } from './twofa.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
+
+type AuthenticatedRequest = Request & { user: { id: string; email: string } };
 
 @Controller('auth')
 export class AuthController {
@@ -93,7 +96,7 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthCallback(@Req() req, @Res() res) {
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
     // Redirect to frontend with tokens
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
@@ -108,7 +111,7 @@ export class AuthController {
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubAuthCallback(@Req() req, @Res() res) {
+  async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
     // Redirect to frontend with tokens
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
@@ -117,7 +120,7 @@ export class AuthController {
   // Two-Factor Authentication
   @Post('2fa/generate')
   @UseGuards(JwtAuthGuard)
-  async generate2FA(@Req() req) {
+  async generate2FA(@Req() req: AuthenticatedRequest) {
     try {
       return await this.twoFAService.generateSecret(req.user.id, req.user.email);
     } catch (error) {
@@ -127,7 +130,7 @@ export class AuthController {
 
   @Post('2fa/enable')
   @UseGuards(JwtAuthGuard)
-  async enable2FA(@Req() req, @Body() body: { token: string }) {
+  async enable2FA(@Req() req: AuthenticatedRequest, @Body() body: { token: string }) {
     if (!body.token) {
       throw new BadRequestException('Token required');
     }
@@ -140,7 +143,7 @@ export class AuthController {
 
   @Post('2fa/disable')
   @UseGuards(JwtAuthGuard)
-  async disable2FA(@Req() req, @Body() body: { token: string }) {
+  async disable2FA(@Req() req: AuthenticatedRequest, @Body() body: { token: string }) {
     if (!body.token) {
       throw new BadRequestException('Token required');
     }
@@ -159,8 +162,8 @@ export class AuthController {
     try {
       // First verify credentials
       const loginResult = await this.authService.login(body.email, body.password);
-      
-      if (loginResult.requires2FA) {
+
+      if ('requires2FA' in loginResult && loginResult.requires2FA) {
         // Get user to verify 2FA - need to access PrismaService through AuthService
         const prisma = (this.authService as any).prisma;
         const user = await prisma.user.findUnique({

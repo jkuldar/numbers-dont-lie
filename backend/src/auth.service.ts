@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './prisma.service';
+import { TwoFAService } from './twofa.service';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { randomBytes } from 'crypto';
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private twoFAService: TwoFAService,
   ) {}
 
   async register(email: string, password: string) {
@@ -66,8 +68,10 @@ export class AuthService {
         return { requires2FA: true, message: '2FA token required' };
       }
 
-      // 2FA verification will be handled by separate endpoint
-      // For now, just indicate that 2FA is needed
+      const valid2FA = await this.twoFAService.verifyToken(user.id, twoFactorToken);
+      if (!valid2FA) {
+        throw new Error('Invalid 2FA token');
+      }
     }
 
     return this.generateTokens(user.id, user.email);
@@ -88,9 +92,14 @@ export class AuthService {
       { expiresIn: '7d' },
     );
 
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: {
+        refreshToken: hashedRefreshToken,
+        lastActivityAt: new Date(),
+      },
     });
 
     return { accessToken, refreshToken };
@@ -120,7 +129,12 @@ export class AuthService {
         where: { id: payload.sub },
       });
 
-      if (!user || user.refreshToken !== oldRefreshToken) {
+      if (!user || !user.refreshToken) {
+        throw new Error('Invalid refresh token');
+      }
+
+      const matches = await bcrypt.compare(oldRefreshToken, user.refreshToken);
+      if (!matches) {
         throw new Error('Invalid refresh token');
       }
 
@@ -128,6 +142,11 @@ export class AuthService {
         { sub: user.id, email: user.email },
         { expiresIn: '15m' },
       );
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastActivityAt: new Date() },
+      });
 
       return { accessToken };
     } catch {
