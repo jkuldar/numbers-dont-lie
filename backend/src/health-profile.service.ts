@@ -93,9 +93,9 @@ export class HealthProfileService {
       activityLevel: data.activityLevel,
       sleepHoursPerDay: data.sleepHoursPerDay,
       stressLevel: data.stressLevel,
-      dietaryPreferences: data.dietaryPreferences || [],
-      allergies: data.allergies || [],
-      restrictions: data.restrictions || [],
+      dietaryPreferences: this.encryptArray(data.dietaryPreferences),
+      allergies: this.encryptArray(data.allergies),
+      restrictions: this.encryptArray(data.restrictions),
       primaryGoal: data.primaryGoal,
       targetDate: data.targetDate ? new Date(data.targetDate) : null,
       weeklyActivityGoal: data.weeklyActivityGoal,
@@ -320,6 +320,9 @@ export class HealthProfileService {
     if (!profile) return profile;
     return {
       ...profile,
+      dietaryPreferences: this.decryptArray(profile.dietaryPreferences),
+      allergies: this.decryptArray(profile.allergies),
+      restrictions: this.decryptArray(profile.restrictions),
       medicalConditions: this.decryptArray(profile.medicalConditions),
       medications: this.decryptArray(profile.medications),
     };

@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { PrismaService } from './prisma.service';
+import { EncryptionService } from './encryption.service';
 
 @Injectable()
 export class PrivacySettingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryptionService: EncryptionService,
+  ) {}
 
   /**
    * Get privacy settings for a user
@@ -96,11 +101,12 @@ export class PrivacySettingsService {
 
     // Build filtered data based on privacy preferences
     const aiData: any = {
-      // Always include basic demographics for AI context
+      // Always include pseudonymous context to avoid leaking identifiers
+      userAlias: this.buildAlias(userId),
       age: healthProfile.age,
-      gender: healthProfile.gender,
-      activityLevel: healthProfile.activityLevel,
-      primaryGoal: healthProfile.primaryGoal,
+      gender: this.redactPII(healthProfile.gender),
+      activityLevel: this.redactPII(healthProfile.activityLevel),
+      primaryGoal: this.redactPII(healthProfile.primaryGoal),
     };
 
     if (settings.includeWeight) {
@@ -111,22 +117,46 @@ export class PrivacySettingsService {
 
     if (settings.includeActivity) {
       aiData.sleepHoursPerDay = healthProfile.sleepHoursPerDay;
-      aiData.stressLevel = healthProfile.stressLevel;
+      aiData.stressLevel = this.redactPII(healthProfile.stressLevel);
       aiData.weeklyActivityGoal = healthProfile.weeklyActivityGoal;
-      aiData.fitnessLevel = healthProfile.fitnessLevel;
+      aiData.fitnessLevel = this.redactPII(healthProfile.fitnessLevel);
     }
 
     if (settings.includeDietary) {
-      aiData.dietaryPreferences = healthProfile.dietaryPreferences;
-      aiData.allergies = healthProfile.allergies;
-      aiData.restrictions = healthProfile.restrictions;
+      aiData.dietaryPreferences = this.decryptAndSanitizeArray(healthProfile.dietaryPreferences);
+      aiData.allergies = this.decryptAndSanitizeArray(healthProfile.allergies);
+      aiData.restrictions = this.decryptAndSanitizeArray(healthProfile.restrictions);
     }
 
     if (settings.includeMedical) {
-      aiData.medicalConditions = healthProfile.medicalConditions;
-      aiData.medications = healthProfile.medications;
+      aiData.medicalConditions = this.decryptAndSanitizeArray(healthProfile.medicalConditions);
+      aiData.medications = this.decryptAndSanitizeArray(healthProfile.medications);
     }
 
     return aiData;
+  }
+
+  private decryptAndSanitizeArray(values?: string[]) {
+    if (!values || values.length === 0) return [];
+    return values.map((v) => {
+      try {
+        const decrypted = this.encryptionService.decrypt(v);
+        return this.redactPII(decrypted);
+      } catch {
+        return this.redactPII(v);
+      }
+    });
+  }
+
+  private redactPII(value?: string | null) {
+    if (!value) return value;
+    const withoutEmails = value.replace(/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '[redacted-email]');
+    const withoutPhones = withoutEmails.replace(/\+?\d[\d\s().-]{7,}\d/g, '[redacted-phone]');
+    return withoutPhones.trim();
+  }
+
+  private buildAlias(userId: string) {
+    const salt = process.env.ENCRYPTION_KEY || 'ai-anon-salt';
+    return crypto.createHash('sha256').update(`${userId}:${salt}`).digest('hex').slice(0, 16);
   }
 }
