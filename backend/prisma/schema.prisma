@@ -35,6 +35,8 @@ model User {
   healthProfile       HealthProfile?
   weightHistory       WeightHistory[]
   privacySettings     PrivacySettings?
+  activityEntries     ActivityEntry[]
+  habitLogs           HabitLog[]
   
   @@map("users")
 }
@@ -76,6 +78,15 @@ model HealthProfile {
   fitnessLevel          String?  // 'beginner', 'intermediate', 'advanced'
   medicalConditions     String[] // List of conditions (encrypted)
   medications           String[] // List of medications (encrypted)
+
+  // Derived metrics
+  bmi                   Float?
+  bmiClass              String?
+  wellnessScore         Int?
+  progressPercent       Float?
+  nextMilestonePercent  Float?
+  activityStreakDays    Int?
+  habitStreakDays       Int?
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -94,6 +105,34 @@ model WeightHistory {
   
   @@unique([userId, recordedAt])
   @@map("weight_history")
+}
+
+model ActivityEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String?
+  durationMin Int?
+  intensity   String?
+  calories    Float?
+  steps       Int?
+  loggedAt    DateTime @default(now())
+  note        String?
+
+  @@unique([userId, loggedAt])
+  @@map("activity_entries")
+}
+
+model HabitLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitType  String
+  loggedDate DateTime @default(now())
+  note       String?
+
+  @@unique([userId, habitType, loggedDate])
+  @@map("habit_logs")
 }
 
 model PrivacySettings {

@@ -7,7 +7,8 @@ import {
   UseGuards, 
   Req, 
   BadRequestException,
-  NotFoundException
+  NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { HealthProfileService } from './health-profile.service';
@@ -70,6 +71,56 @@ export class HealthProfileController {
   async getWeightHistory(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     return await this.healthProfileService.getWeightHistory(userId);
+  }
+
+  @Post('activity')
+  async addActivity(
+    @Req() req: AuthedRequest,
+    @Body()
+    body: {
+      type?: string;
+      durationMin?: number;
+      intensity?: string;
+      calories?: number;
+      steps?: number;
+      loggedAt?: Date;
+      note?: string;
+    },
+  ) {
+    const userId = req.user.userId;
+    return await this.healthProfileService.addActivityEntry(userId, body);
+  }
+
+  @Post('habit')
+  async addHabit(
+    @Req() req: AuthedRequest,
+    @Body()
+    body: {
+      habitType: string;
+      loggedDate?: Date;
+      note?: string;
+    },
+  ) {
+    const userId = req.user.userId;
+    if (!body.habitType) {
+      throw new BadRequestException('habitType is required');
+    }
+    return await this.healthProfileService.addHabitLog(userId, body.habitType, body.loggedDate, body.note);
+  }
+
+  @Get('wellness')
+  async getWellness(@Req() req: AuthedRequest) {
+    const userId = req.user.userId;
+    return await this.healthProfileService.getWellnessSnapshot(userId);
+  }
+
+  @Get('summary')
+  async getSummary(@Req() req: AuthedRequest, @Query('period') period: 'week' | 'month' = 'week') {
+    const userId = req.user.userId;
+    if (!['week', 'month'].includes(period)) {
+      throw new BadRequestException('period must be "week" or "month"');
+    }
+    return await this.healthProfileService.getSummary(userId, period);
   }
 
   @Post('consent')
