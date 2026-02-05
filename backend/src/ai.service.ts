@@ -3,84 +3,84 @@ import { PrismaService } from './prisma.service';
 import { createHash } from 'crypto';
 
 interface HealthContext {
-  userId: string;
-  demographics?: {
+    userId: string;
+    demographics?: {
     age?: number;
     gender?: string;
-  };
-  physical?: {
+    };
+    physical?: {
     heightCm?: number;
     currentWeightKg?: number;
     targetWeightKg?: number;
     bmi?: number;
     bmiClass?: string;
-  };
-  lifestyle?: {
+    };
+    lifestyle?: {
     activityLevel?: string;
     sleepHoursPerDay?: number;
     stressLevel?: string;
-  };
-  dietary?: {
+    };
+    dietary?: {
     preferences?: string[];
     allergies?: string[];
     restrictions?: string[];
-  };
-  goals?: {
+    };
+    goals?: {
     primaryGoal?: string;
     targetDate?: Date;
     weeklyActivityGoal?: number;
-  };
-  fitness?: {
+    };
+    fitness?: {
     fitnessLevel?: string;
     medicalConditions?: string[];
-  };
-  progress?: {
+    };
+    progress?: {
     wellnessScore?: number;
     progressPercent?: number;
     activityStreakDays?: number;
     habitStreakDays?: number;
-  };
-  recentActivity?: Array<{
+    };
+    recentActivity?: Array<{
     type?: string;
     durationMin?: number;
     intensity?: string;
     loggedAt: Date;
-  }>;
-  weightTrend?: Array<{
+    }>;
+    weightTrend?: Array<{
     weightKg: number;
     recordedAt: Date;
-  }>;
+    }>;
 }
 
 interface AIInsightResult {
-  id: string;
-  response: string;
-  priority: string;
-  isValid: boolean;
-  violatesRestrictions: boolean;
-  validationNotes?: string;
-  fromCache: boolean;
-  model: string;
-  createdAt: Date;
+    id: string;
+    response: string;
+    priority: string;
+    isValid: boolean;
+    violatesRestrictions: boolean;
+    validationNotes?: string;
+    fromCache: boolean;
+    model: string;
+    createdAt: Date;
 }
 
 @Injectable()
 export class AIService {
-  private readonly logger = new Logger(AIService.name);
-  private readonly CACHE_DURATION_HOURS = 24;
-  private readonly MAX_CONTEXT_LENGTH = 3000;
-  private readonly AI_MODEL = 'gpt-3.5-turbo';
+    private readonly logger = new Logger(AIService.name);
+    private readonly CACHE_DURATION_HOURS = 24;
+    private readonly MAX_CONTEXT_LENGTH = 3000;
+    private readonly AI_MODEL = 'gpt-3.5-turbo';
 
-  constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) {}
 
-  /**
+    /**
    * Get AI insight with caching and fallback
    */
-  async getInsight(userId: string): Promise<AIInsightResult | null> {
+    async getInsight(userId: string): Promise<AIInsightResult | null> {
     try {
       // Build health context
-      const context = await this.buildHealthContext(userId);
-      
+        const context = await this.buildHealthContext(userId);
+        
       // Generate context hash for cache lookup
       const contextHash = this.generateContextHash(context);
 
@@ -223,7 +223,12 @@ export class AIService {
           loggedAt: true,
         },
       });
-      context.recentActivity = recentActivities;
+      context.recentActivity = recentActivities.map(activity => ({
+        type: activity.type ?? undefined,
+        durationMin: activity.durationMin ?? undefined,
+        intensity: activity.intensity ?? undefined,
+        loggedAt: activity.loggedAt,
+      }));
     }
 
     // Weight trend (last 30 days)
