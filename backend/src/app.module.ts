@@ -18,6 +18,7 @@ import { HealthProfileController } from './health-profile.controller';
 import { HealthProfileService } from './health-profile.service';
 import { PrivacySettingsController } from './privacy-settings.controller';
 import { PrivacySettingsService } from './privacy-settings.service';
+import { AIModule } from './ai.module';
 
 const oauthStrategies: any[] = [JwtStrategy];
 
@@ -50,6 +51,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
         },
       ],
     }),
+    AIModule,
   ],
   controllers: [
     HealthController, 

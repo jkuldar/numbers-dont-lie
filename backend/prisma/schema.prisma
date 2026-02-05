@@ -156,3 +156,35 @@ model PrivacySettings {
   
   @@map("privacy_settings")
 }
+
+model AIInsight {
+  id                    String   @id @default(uuid())
+  userId                String
+  
+  // Prompt and response
+  prompt                String   @db.Text
+  response              String   @db.Text
+  
+  // Context hash (to identify similar contexts)
+  contextHash           String
+  
+  // Priority tagging
+  priority              String   // 'high', 'medium', 'low'
+  
+  // Validation flags
+  isValid               Boolean  @default(true)
+  violatesRestrictions  Boolean  @default(false)
+  validationNotes       String?  @db.Text
+  
+  // Metadata
+  model                 String   // 'gpt-3.5-turbo', etc.
+  tokensUsed            Int?
+  responseTimeMs        Int?
+  
+  createdAt             DateTime @default(now())
+  expiresAt             DateTime? // For cache invalidation
+  
+  @@index([userId, contextHash])
+  @@index([userId, createdAt])
+  @@map("ai_insights")
+}

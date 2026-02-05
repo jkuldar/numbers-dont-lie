@@ -202,13 +202,42 @@ cp .env.example .env
 - [x] OAuth providers (Google + GitHub)
 - [x] Password reset via email
 - [x] Two-factor authentication (TOTP)
+- [x] AI-powered health insights with validation
+- [x] Response caching and fallback mechanism
+- [x] Hallucination detection and safety checks
 
 ### 🚧 In Progress / Planned
 - [ ] Health profile system
 - [ ] BMI & Wellness score calculations
-- [ ] AI-powered health insights
 - [ ] Data visualization
 - [ ] Progress tracking
+
+## 🤖 AI Features
+
+The platform includes AI-powered personalized health insights with:
+
+- **PII Removal**: User identifiers are anonymized before sending to AI
+- **Context Building**: Comprehensive health context from normalized data
+- **Response Validation**: Checks for dietary restriction violations and unsafe recommendations
+- **Caching**: 24-hour cache with context-based lookup for efficiency
+- **Fallback**: Returns last valid insight if AI service is unavailable
+- **Hallucination Detection**: Filters unrealistic claims and dangerous advice
+- **Priority Tagging**: Insights categorized as high/medium/low priority
+
+### Configuration
+
+Add to your `.env` file:
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+### API Endpoints
+
+- `GET /ai/insight` - Get personalized AI insight (with caching)
+- `GET /ai/insights?limit=10` - Get insight history
+- `POST /ai/invalidate-cache` - Force regeneration of insights
+
+See [AI_DOCUMENTATION.md](AI_DOCUMENTATION.md) for detailed information.
 
 ## 🛠️ Development
 
