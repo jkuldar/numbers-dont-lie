@@ -3,6 +3,7 @@ import {
   Post, 
   Get, 
   Put, 
+  Patch,
   Body, 
   UseGuards, 
   Req, 
@@ -38,6 +39,17 @@ export class PrivacySettingsController {
 
   @Put()
   async updateSettings(@Req() req: AuthedRequest, @Body() body: any) {
+    const userId = req.user.userId;
+    
+    try {
+      return await this.privacySettingsService.updateSettings(userId, body);
+    } catch (error) {
+      throw new BadRequestException((error as Error).message);
+    }
+  }
+
+  @Patch()
+  async patchSettings(@Req() req: AuthedRequest, @Body() body: any) {
     const userId = req.user.userId;
     
     try {

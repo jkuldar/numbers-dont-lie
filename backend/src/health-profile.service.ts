@@ -247,6 +247,16 @@ export class HealthProfileService {
     }
   }
 
+  /**
+   * Get activity entries for a user
+   */
+  async getActivityEntries(userId: string) {
+    return await this.prisma.activityEntry.findMany({
+      where: { userId },
+      orderBy: { loggedAt: 'desc' },
+    });
+  }
+
   async addHabitLog(userId: string, habitType: string, loggedDate?: Date, note?: string) {
     try {
       const log = await this.prisma.habitLog.create({

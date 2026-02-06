@@ -1,0 +1,115 @@
+// API communication module
+export class API {
+  constructor() {
+    this.baseURL = import.meta.env.VITE_API_URL || 'https://localhost:3000';
+    this.token = localStorage.getItem('ndli_access_token') || '';
+  }
+
+  setToken(token) {
+    this.token = token;
+    localStorage.setItem('ndli_access_token', token);
+  }
+
+  getToken() {
+    return this.token;
+  }
+
+  setBaseURL(url) {
+    this.baseURL = url;
+  }
+
+  async request(endpoint, options = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const config = {
+      ...options,
+      headers,
+      credentials: 'include',
+    };
+
+    const response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+    if (!response.ok) {
+      const error = new Error(`HTTP ${response.status}`);
+      error.status = response.status;
+      try {
+        error.data = await response.json();
+      } catch {}
+      throw error;
+    }
+
+    return response.json();
+  }
+
+  // Health check
+  async checkHealth() {
+    const response = await fetch(`${this.baseURL}/health`);
+    return response.json();
+  }
+
+  // Health profile endpoints
+  async getHealthProfile() {
+    return this.request('/health-profile');
+  }
+
+  async updateHealthProfile(data) {
+    return this.request('/health-profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async grantConsent() {
+    return this.request('/health-profile/consent', { method: 'POST' });
+  }
+
+  async revokeConsent() {
+    return this.request('/health-profile/revoke-consent', { method: 'POST' });
+  }
+
+  // Privacy settings
+  async getPrivacySettings() {
+    return this.request('/privacy-settings');
+  }
+
+  async updatePrivacySettings(data) {
+    return this.request('/privacy-settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Export data
+  async exportData() {
+    return this.request('/health-profile/export');
+  }
+
+  // Weight history
+  async getWeightHistory() {
+    return this.request('/health-profile/weight-history');
+  }
+
+  async addWeightEntry(weightKg) {
+    return this.request('/health-profile/weight', {
+      method: 'POST',
+      body: JSON.stringify({ weightKg }),
+    });
+  }
+
+  // Activity
+  async getActivityEntries() {
+    return this.request('/health-profile/activity-entries');
+  }
+
+  // AI insights
+  async getAIInsights() {
+    return this.request('/ai/insights');
+  }
+}

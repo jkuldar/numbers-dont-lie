@@ -7,7 +7,9 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {},
+  "dependencies": {
+    "chart.js": "^4.4.1"
+  },
   "devDependencies": {
     "vite": "^5.0.0"
   }

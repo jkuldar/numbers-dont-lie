@@ -2,7 +2,8 @@ import {
   Controller, 
   Post, 
   Get, 
-  Put, 
+  Put,
+  Patch, 
   Body, 
   UseGuards, 
   Req, 
@@ -26,10 +27,23 @@ export class HealthProfileController {
     const userId = req.user.userId;
     
     // Explicit consent check
-    if (!body.consentGiven) {
+    if (!body.consentGiven && body.consentGiven !== undefined) {
       throw new BadRequestException('Explicit consent required to save health data');
     }
 
+    try {
+      // Normalize units before saving
+      const normalizedData = this.healthProfileService.normalizeUnits(body);
+      return await this.healthProfileService.createOrUpdateProfile(userId, normalizedData);
+    } catch (error) {
+      throw new BadRequestException((error as Error).message);
+    }
+  }
+
+  @Patch()
+  async updateProfile(@Req() req: AuthedRequest, @Body() body: any) {
+    const userId = req.user.userId;
+    
     try {
       // Normalize units before saving
       const normalizedData = this.healthProfileService.normalizeUnits(body);
@@ -52,15 +66,18 @@ export class HealthProfileController {
   }
 
   @Post('weight')
-  async addWeightEntry(@Req() req: AuthedRequest, @Body() body: { weight: number; unit?: string; note?: string }) {
+  async addWeightEntry(@Req() req: AuthedRequest, @Body() body: { weightKg?: number; weight?: number; unit?: string; note?: string }) {
     const userId = req.user.userId;
     
-    if (!body.weight || body.weight <= 0) {
+    // Support both weightKg and weight fields
+    const weightValue = body.weightKg || body.weight;
+    
+    if (!weightValue || weightValue <= 0) {
       throw new BadRequestException('Valid weight required');
     }
 
     try {
-      const weightKg = this.healthProfileService.convertWeightToKg(body.weight, body.unit || 'kg');
+      const weightKg = body.weightKg || this.healthProfileService.convertWeightToKg(body.weight!, body.unit || 'kg');
       return await this.healthProfileService.addWeightEntry(userId, weightKg, body.note);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
@@ -71,6 +88,12 @@ export class HealthProfileController {
   async getWeightHistory(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
     return await this.healthProfileService.getWeightHistory(userId);
+  }
+
+  @Get('activity-entries')
+  async getActivityEntries(@Req() req: AuthedRequest) {
+    const userId = req.user.userId;
+    return await this.healthProfileService.getActivityEntries(userId);
   }
 
   @Post('activity')
