@@ -1,6 +1,76 @@
 # Wellness Platform - Numbers Don't Lie
 
-A privacy-focused wellness platform with AI-powered health insights.
+A privacy-focused wellness platform with AI-powered health insights, comprehensive health tracking, and personalized recommendations.
+
+## 🌟 Overview
+
+This platform helps users track their health metrics, set wellness goals, and receive AI-powered personalized recommendations while maintaining strict privacy and security standards. Built with:
+
+- **Backend:** NestJS + PostgreSQL + Prisma
+- **Frontend:** Vanilla JavaScript with Chart.js for visualizations
+- **Security:** End-to-end encryption, JWT authentication, 2FA support
+- **AI:** OpenAI GPT-3.5-turbo for personalized health insights
+- **Deployment:** Docker with single-command setup
+
+## ✨ Key Features
+
+### 🔐 Security & Authentication
+- Email verification required for account activation
+- OAuth 2.0 (Google + GitHub)
+- Password reset via email
+- Two-Factor Authentication (TOTP)
+- JWT-based session management (access + refresh tokens)
+- Field-level encryption for sensitive health data
+- HTTPS with SSL certificates
+
+### 💪 Health Tracking
+- Comprehensive health profile (demographics, physical metrics, goals)
+- BMI calculation and classification
+- Wellness score (0-100) based on 4 components:
+  - BMI contribution (30%)
+  - Activity level (30%)
+  - Goal progress (20%)
+  - Health habits (20%)
+- Weight and activity history with timestamps
+- Duplicate entry prevention
+- Unit normalization (automatic kg/cm conversion)
+
+### 📊 Analytics & Insights
+- Weekly and monthly health summaries
+- Progress tracking with milestone detection
+- Weight loss/gain tracking
+- Activity frequency monitoring
+- Goal progress visualization
+
+### 🤖 AI-Powered Recommendations
+- Personalized health insights based on user profile
+- PII removal before AI processing
+- Dietary restriction validation
+- Medical condition awareness
+- Response caching and fallback
+- Hallucination detection and safety filtering
+- Priority-based recommendations
+
+### 📈 Visualization
+- Interactive charts for weight tracking
+- Wellness score gauges
+- Activity level comparisons
+- Goal progress indicators
+- Responsive mobile design
+- Real-time updates without page refresh
+
+### 🛡️ Privacy & Compliance
+- Explicit data usage consent
+- Privacy settings management
+- Data export functionality (JSON/CSV)
+- GDPR-compliant data handling
+- Encryption at rest and in transit
+
+### ⚡ Performance & Reliability
+- Rate limiting (60 req/min) to prevent abuse
+- AI response caching (reduces latency and cost)
+- Graceful error handling
+- Loading states and skeleton UI
 
 ## 🔐 Security Features
 
@@ -100,7 +170,175 @@ cp .env.example .env
 
 ## 🧪 Testing
 
-### Test Authentication Flow
+The project includes comprehensive E2E tests covering all mandatory requirements.
+
+### Quick Start
+
+```bash
+# Install dependencies
+cd backend
+npm install
+
+# Run all tests
+npm test
+
+# Run E2E tests only
+npm run test:e2e
+
+# Run with coverage
+npm run test:cov
+```
+
+### Test Suites
+
+1. **Authentication Tests** (`auth.e2e-spec.ts`)
+   - Email verification flow
+   - Protected routes without verification
+   - OAuth flows (Google & GitHub)
+   - Password reset
+   - 2FA enable/disable/verify
+   - Refresh token functionality
+   - Access token expiration
+
+2. **Health Profile Tests** (`health-profile.e2e-spec.ts`)
+   - Profile creation with all fields
+   - BMI calculation and classification
+   - Wellness score calculation
+   - Weight history tracking
+   - Duplicate entry prevention
+   - Unit normalization (lbs→kg, ft→cm)
+   - Weekly/monthly summaries
+   - Data consent validation
+
+3. **AI Insights Tests** (`ai-insights.e2e-spec.ts`)
+   - AI recommendation generation
+   - Goal alignment verification
+   - PII exclusion checks
+   - Dietary restriction validation
+   - Goal change adaptation
+   - Response caching
+   - Fallback mechanism
+
+4. **Rate Limiting Tests** (`rate-limiting.e2e-spec.ts`)
+   - Rapid request blocking
+   - Rate limit headers
+   - Per-user limits
+   - Login brute-force prevention
+
+### Manual Testing
+
+For comprehensive manual testing instructions, including OAuth flows and browser-based tests, see **[TESTING_GUIDE.md](TESTING_GUIDE.md)**.
+
+### Test Coverage
+
+Target coverage:
+- Statements: > 80%
+- Branches: > 75%
+- Functions: > 80%
+- Lines: > 80%
+
+View coverage report:
+```bash
+npm run test:cov
+open coverage/lcov-report/index.html
+```
+
+## 📖 Usage Guide
+
+### 1. Create an Account
+
+1. Navigate to http://localhost:5173
+2. Register with email and password
+3. Check email for verification link (or console in dev mode)
+4. Verify your email
+
+### 2. Complete Your Health Profile
+
+1. Log in to your account
+2. Fill out the health profile form:
+   - Demographics (age, biological sex)
+   - Physical metrics (height, weight)
+   - Goals (target weight, goal type)
+   - Lifestyle (activity level, exercise frequency, sleep, stress)
+   - Dietary preferences and restrictions
+   - Medical conditions and medications
+3. Review and accept data usage consent
+4. Submit profile
+
+### 3. Track Your Progress
+
+1. **Log Weight:** Add weight entries with dates
+2. **Log Activities:** Record exercises with duration and intensity
+3. **View Dashboard:** See your BMI, wellness score, and progress charts
+4. **Weekly/Monthly Summaries:** Review your progress over time
+
+### 4. Get AI Insights
+
+1. Navigate to AI Insights section
+2. View personalized recommendations based on your profile
+3. Recommendations adapt when you update your goals or profile
+4. High-priority insights are highlighted
+
+### 5. Manage Privacy
+
+1. Go to Privacy Settings
+2. Adjust data sharing preferences
+3. Export your data anytime (JSON/CSV format)
+4. Review what data is collected and how it's used
+
+### 6. Enable 2FA (Optional but Recommended)
+
+1. Go to Security Settings
+2. Click "Enable Two-Factor Authentication"
+3. Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+4. Enter the 6-digit code to confirm
+5. Future logins will require the code
+
+## 🎯 API Endpoints
+
+### Authentication
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login with email/password
+- `POST /auth/verify-email?code=` - Verify email
+- `POST /auth/refresh` - Get new access token
+- `POST /auth/forgot-password` - Request password reset
+-  `POST /auth/reset-password` - Reset password with token
+- `GET /auth/google` - Initiate Google OAuth
+- `GET /auth/github` - Initiate GitHub OAuth
+- `POST /auth/2fa/generate` - Generate 2FA secret
+- `POST /auth/2fa/enable` - Enable 2FA
+- `POST /auth/2fa/disable` - Disable 2FA
+
+### Health Profile
+- `POST /health-profile` - Create profile
+- `GET /health-profile` - Get current profile
+- `PATCH /health-profile/:id` - Update profile
+- `POST /health-profile/weight-history` - Add weight entry
+- `GET /health-profile/weight-history` - Get weight history
+- `POST /health-profile/activity` - Log activity
+- `GET /health-profile/activity` - Get activity history
+- `GET /health-profile/progress` - Get goal progress
+- `GET /health-profile/milestones` - Get achievements
+- `GET /health-profile/summary/weekly` - Weekly summary
+- `GET /health-profile/summary/monthly` - Monthly summary
+
+### AI Insights
+- `GET /ai/insights` - Get personalized insights (cached)
+- `GET /ai/insights/history` - Get insight history
+- `POST /ai/invalidate-cache` - Force regeneration
+
+### Privacy
+- `GET /privacy-settings` - Get privacy settings
+- `PATCH /privacy-settings` - Update settings
+- `GET /data-export` - Export all user data
+
+## 📋 Requirements
+
+- **Docker & Docker Compose** (only requirement for running)
+- Node.js 18+ (for development)
+- PostgreSQL 15+ (handled by Docker)
+
+## 🧪 Testing
 
 1. **Register a new user:**
    ```bash
@@ -189,28 +427,111 @@ cp .env.example .env
 
 ## 📊 Development Status
 
-### ✅ Completed (Day 1-3)
+### ✅ Completed Features
 - [x] Docker setup with single command execution
 - [x] HTTPS with self-signed certificates
 - [x] Database encryption (SSL + field-level encryption)
-- [x] Email-password authentication
-- [x] Email verification
-- [x] JWT access tokens (15 min expiry)
-- [x] JWT refresh tokens (7 day expiry)
-- [x] Protected routes with guards
-- [x] Environment configuration
+- [x] Email-password authentication with verification
+- [x] JWT access tokens (15 min) + refresh tokens (7 days)
+- [x] Protected routes with email verification guards
 - [x] OAuth providers (Google + GitHub)
 - [x] Password reset via email
 - [x] Two-factor authentication (TOTP)
-- [x] AI-powered health insights with validation
-- [x] Response caching and fallback mechanism
+- [x] Health profile system with comprehensive metrics
+- [x] BMI calculation and classification
+- [x] Wellness score with 4-component calculation
+- [x] Weight and activity tracking with timestamps
+- [x] Duplicate entry prevention
+- [x] Unit normalization (automatic conversions)
+- [x] Weekly and monthly health summaries
+- [x] AI-powered health insights
+- [x] PII removal and privacy protection
+- [x] Response validation against dietary restrictions
+- [x] AI caching and fallback mechanism
 - [x] Hallucination detection and safety checks
+- [x] Rate limiting (60 req/min)
+- [x] Comprehensive E2E test suite
+- [x] Dashboard with charts and visualizations
+- [x] Privacy settings and data export
 
-### 🚧 In Progress / Planned
-- [ ] Health profile system
-- [ ] BMI & Wellness score calculations
-- [ ] Data visualization
-- [ ] Progress tracking
+### 🔮 Future Enhancements
+- [ ] Mobile app (React Native)
+- [ ] Social features (friend tracking, challenges)
+- [ ] Integration with fitness devices (Fitbit, Apple Health)
+- [ ] Meal planning and calorie tracking
+- [ ] Professional health coach connections
+- [ ] Advanced analytics and predictive insights
+
+## 🎓 Development Notes
+
+### AI Implementation
+
+**Model Choice:** GPT-3.5-turbo
+- **Reasoning:** Balance of response quality and latency (sub-second), cost-effective for production
+- **Alternatives Considered:** GPT-4 (better but 10x cost, slower)
+
+**Prompt Engineering:** Zero-shot approach
+- System role: "Health and wellness advisor"
+- Structured context: demographics, metrics, goals, restrictions, medical conditions
+- Explicit constraints: safety, restrictions, evidence-based
+- **Reasoning:** GPT-3.5-turbo has strong instruction-following; examples may not generalize to diverse users
+
+**Context Length:** ~500-800 tokens (full profile)
+- **Trade-off:** Higher cost but significantly better personalization
+- **Optimization:** Structured format, only relevant fields
+
+**PII Removal Impact:**
+- **Removed:** Email, name, database IDs (replaced with UUIDs)
+- **Kept:** Age, sex, metrics, goals, preferences (needed for personalization)
+- **Result:** Recommendations remain highly personalized through rich health context
+
+**Hallucination Prevention:**
+1. Prompt constraints (safety requirements, evidence-based)
+2. Response validation (goal alignment, restriction checks)
+3. Post-processing filters (dangerous keywords, medical claims)
+4. Fallback to generic safe advice if validation fails
+5. Human oversight (logging, periodic review)
+
+**Caching Strategy:**
+- 24-hour cache per user context
+- Invalidated on major profile changes
+- Fallback to cached insights if AI service unavailable
+- **Trade-off:** Faster responses and lower cost vs. always-fresh insights
+
+### Security Decisions
+
+**JWT Access Token Duration:** 15 minutes
+- **Pro:** Reduces damage if token stolen (short-lived)
+- **Con:** Requires more frequent refreshes
+- **Balance:** 7-day refresh token provides good UX
+
+**Rate Limiting:** 60 requests per minute
+- **Reasoning:** Allows bursts (dashboard loading) while preventing abuse
+- **Protects:** Server resources, AI API costs, brute force attacks
+
+**BMI Impact on Wellness Score:** 30% contribution
+- Normal BMI (18.5-24.9): Higher score
+- Underweight/Overweight/Obese: Proportionally lower
+- Combined with activity (30%), progress (20%), habits (20%)
+
+### Data Visualization
+
+**Library:** Chart.js
+- **Reasoning:** Lightweight, responsive, simple integration, good mobile support
+- **Trade-offs:** Limited advanced visualizations vs. simpler maintenance
+- **Alternatives:** D3.js (more complex), Recharts (React-specific)
+
+**Normalization Impact:**
+- All metrics in standard units (kg, cm)
+- **Pros:** Consistent comparisons, accurate calculations, simpler charting
+- **Implementation:** Convert at input, store normalized, display in user's preferred unit
+
+**Missing Data Handling:**
+- Required fields: Cannot generate insights without basics
+- Optional fields: AI adapts with more generic advice
+- **Mitigation:** Prompt user to complete profile for better results
+
+## 👨‍💻 Development
 
 ## 🤖 AI Features
 
@@ -239,7 +560,7 @@ OPENAI_API_KEY=sk-...
 
 See [AI_DOCUMENTATION.md](AI_DOCUMENTATION.md) for detailed information.
 
-## 🛠️ Development
+## �‍💻 Development
 
 ### Run Database Migrations
 
@@ -259,7 +580,15 @@ docker-compose exec backend npx prisma generate
 docker-compose exec backend npx prisma studio
 ```
 
-## 🐛 Troubleshooting
+## � Additional Documentation
+
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Comprehensive testing instructions and manual test procedures
+- **[AI_DOCUMENTATION.md](AI_DOCUMENTATION.md)** - Detailed AI implementation documentation
+- **[OAUTH_2FA_SETUP.md](OAUTH_2FA_SETUP.md)** - OAuth and 2FA setup guide
+- **[project_plan.md](project_plan.md)** - Original project plan and development roadmap
+- **[testing.md](testing.md)** - Testing requirements and criteria
+
+## �🐛 Troubleshooting
 
 ### SSL Certificate Issues
 
@@ -280,13 +609,139 @@ docker-compose logs postgres
 ```
 
 ### Port Already in Use
+# Email Not Sending (Development)
 
-If ports 3000 or 5173 are already in use:
+In development, emails are logged to console:
 ```bash
-docker-compose down
-# Change ports in docker-compose.yml
-docker-compose up
+docker-compose logs -f backend | grep "Verification"
 ```
+
+Copy the verification code/token from the logs.
+
+### Tests Failing
+
+```bash
+# Clean install
+cd backend
+rm -rf node_modules package-lock.json
+npm install
+
+# Ensure database is running
+docker-compose up -d postgres
+
+# Run migrations
+npx prisma migrate deploy
+
+# Run tests
+npm test
+```
+
+## 🚀 Production Deployment
+
+### Environment Variables (Production)
+
+**Critical:** Change these from defaults:
+
+```bash
+# Strong secrets (min 32 characters)
+JWT_ACCESS_SECRET=<generate-random-string>
+JWT_REFRESH_SECRET=<generate-random-string>
+ENCRYPTION_KEY=<generate-32-char-string>
+
+# Real SMTP server
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=true
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=noreply@yourdomain.com
+
+# OAuth credentials
+GOOGLE_CLIENT_ID=<your-client-id>
+GOOGLE_CLIENT_SECRET=<your-client-secret>
+GITHUB_CLIENT_ID=<your-client-id>
+GITHUB_CLIENT_SECRET=<your-client-secret>
+
+# OpenAI
+OPENAI_API_KEY=sk-<your-key>
+
+# Frontend URL
+FRONTEND_URL=https://yourdomain.com
+```
+
+### Security Checklist
+
+- [ ] Change all default secrets
+- [ ] Use real SSL certificates (Let's Encrypt)
+- [ ] Configure proper CORS origins
+- [ ] Set up database backups
+- [ ] Enable database SSL in production
+- [ ] Configure proper logging and monitoring
+- [ ] Set up rate limiting alerts
+- [ ] Review and adjust rate limits for production traffic
+- [ ] Enable SMTP for real email delivery
+- [ ] Set up OAuth with proper callback URLs
+
+## 📊 Monitoring & Maintenance
+
+### Health Checks
+
+```bash
+# Check all services
+docker-compose ps
+
+# Check backend logs
+docker-compose logs -f backend
+
+# Check database
+docker-compose exec postgres psql -U wellness -d wellness_db
+```
+
+### Database Maintenance
+
+```bash
+# Backup database
+docker-compose exec postgres pg_dump -U wellness wellness_db > backup.sql
+
+# Restore database
+docker-compose exec -T postgres psql -U wellness wellness_db < backup.sql
+```
+
+### AI Usage Monitoring
+
+Monitor OpenAI API usage:
+- Track request counts in logs
+- Monitor costs via OpenAI dashboard
+- Adjust caching strategy if costs too high
+
+## 📝 License
+
+This project is part of a wellness platform development exercise.
+
+## 👥 Contributing
+
+This is an educational project demonstrating best practices in:
+- Secure authentication and authorization
+- Privacy-focused data handling
+- AI integration with safety measures
+- Comprehensive testing
+- Docker-based deployment
+
+Contributions and suggestions are welcome!
+
+## 🙏 Acknowledgments
+
+Built with:
+- NestJS - Progressive Node.js framework
+- Prisma - Next-generation ORM
+- PostgreSQL - Robust relational database
+- OpenAI - AI-powered insights
+- Chart.js - Simple yet flexible charting
+- Docker - Containerization platform
+
+---
+
+**Health Disclaimer:** This platform is for educational and informational purposes only. Always consult with qualified healthcare professionals for medical advice, diagnosis, or treatment.
 
 ## 📝 License
 
