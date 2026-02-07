@@ -13,61 +13,8 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <div class="page">
-      <header>
-        <p class="eyebrow">Consent · Data usage</p>
-        <h1>Numbers Don't Lie — Privacy Console</h1>
-        <p class="lede">
-          Manage AI/health data consent, view the latest consent timestamp, and ensure anything sent to
-          AI is pseudonymous and stripped of PII.
-        </p>
-      </header>
-
-      <section class="panel" id="status-panel">
-        <div class="status">
-          <span class="dot" id="health-dot"></span>
-          <div>
-            <div id="health-text">Pinging backend…</div>
-            <div class="lede" id="health-subtext"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="consent-panel">
-        <div class="form-grid">
-          <label>
-            API base URL
-            <input id="api-base" type="text" autocomplete="off" />
-          </label>
-          <label>
-            Access token (JWT)
-            <input id="access-token" type="password" autocomplete="off" />
-          </label>
-        </div>
-
-        <div class="actions">
-          <button id="load-consent">Fetch consent status</button>
-          <button class="primary" id="grant-consent">Give consent</button>
-          <button class="danger" id="revoke-consent">Revoke consent</button>
-        </div>
-
-        <div class="consent-state">
-          <div>
-            <div class="lede">Status</div>
-            <div id="consent-badge" class="badge off">Unknown</div>
-          </div>
-          <div>
-            <div class="lede">Last updated</div>
-            <div id="consent-updated">—</div>
-          </div>
-        </div>
-
-        <div class="log" id="consent-log"></div>
-      </section>
-    </div>
-    <script type="module" src="/src/main.js"></script>
+    <div id="app-nav"></div>
+    <div id="app-content"></div>
+    <script type="module" src="/src/app.js"></script>
   </body>
 </html>
-id="app-nav"></div>
-    <div id="app-content"></div>
-    <script type="module" src="/src/app
