@@ -32,7 +32,7 @@ services:
       ENCRYPTION_KEY: dev-encryption-key-32-chars!!!
       NODE_ENV: development
       FRONTEND_URL: http://localhost:5173
-      DISABLE_HTTPS: "true"
+      DISABLE_HTTPS: "false"
       # OAuth credentials (set these to enable OAuth)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}

@@ -120,10 +120,10 @@ This platform helps users track their health metrics, set wellness goals, and re
    ```
 
 4. **Access the application**
-   - Frontend: https://localhost:5173
+   - Frontend: http://localhost:5173
    - Backend API: https://localhost:3000
    
-   ⚠️ **Note:** You'll see a browser warning about self-signed certificates - this is expected in development. Click "Advanced" and proceed.
+   ⚠️ **Note:** You'll see a browser warning about self-signed backend certificates - this is expected in development. Click "Advanced" and proceed.
 
 ## 📁 Project Structure
 
