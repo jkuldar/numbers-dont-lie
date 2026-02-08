@@ -112,4 +112,52 @@ export class API {
   async getAIInsights() {
     return this.request('/ai/insights');
   }
+
+  // Authentication endpoints
+  async register(email, password) {
+    const response = await fetch(`${this.baseURL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Registration failed');
+    }
+
+    return response.json();
+  }
+
+  async login(email, password) {
+    const response = await fetch(`${this.baseURL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Login failed');
+    }
+
+    const data = await response.json();
+    if (data.accessToken) {
+      this.setToken(data.accessToken);
+    }
+    return data;
+  }
+
+  async verifyEmail(code) {
+    const response = await fetch(`${this.baseURL}/auth/verify-email?code=${code}`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Verification failed');
+    }
+
+    return response.json();
+  }
 }

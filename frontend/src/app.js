@@ -1,5 +1,6 @@
 // Main application
 import { API } from './api.js';
+import { Auth } from './auth.js';
 import { Dashboard } from './dashboard.js';
 import { ProfileForm } from './profile-form.js';
 import { Charts } from './charts.js';
@@ -69,71 +70,41 @@ class App {
   checkAuth() {
     const token = this.api.getToken();
     
+    // Check for OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('accessToken');
+    const refreshToken = urlParams.get('refreshToken');
+    
+    if (accessToken) {
+      // OAuth callback - save token and redirect
+      this.api.setToken(accessToken);
+      if (refreshToken) {
+        localStorage.setItem('ndli_refresh_token', refreshToken);
+      }
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      this.navigateTo('dashboard');
+      return;
+    }
+    
     if (!token) {
-      this.showAuthPrompt();
+      this.showAuthScreen();
     } else {
       this.navigateTo('dashboard');
     }
   }
 
-  showAuthPrompt() {
+  showAuthScreen() {
     const container = document.getElementById('app-content');
-    container.innerHTML = `
-      <div class="auth-prompt">
-        <div class="auth-card">
-          <h2>Welcome to Numbers Don't Lie</h2>
-          <p>Please enter your access token to continue.</p>
-          
-          <form id="auth-form">
-            <label>
-              <span>API Base URL</span>
-              <input 
-                type="text" 
-                id="api-base-input" 
-                value="${this.api.baseURL}" 
-                placeholder="https://localhost:3000"
-              />
-            </label>
-            
-            <label>
-              <span>Access Token (JWT)</span>
-              <input 
-                type="password" 
-                id="token-input" 
-                placeholder="Enter your JWT token" 
-                required 
-              />
-            </label>
-            
-            <button type="submit" class="btn-primary">Continue</button>
-          </form>
-          
-          <div class="auth-help">
-            <p><small>Don't have an account? Use the authentication endpoints to register or login.</small></p>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const form = document.getElementById('auth-form');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const baseURL = document.getElementById('api-base-input').value.trim();
-      const token = document.getElementById('token-input').value.trim();
-      
-      if (baseURL) this.api.setBaseURL(baseURL);
-      this.api.setToken(token);
-      
-      // Verify token
-      try {
-        await this.api.getHealthProfile();
-        this.navigateTo('dashboard');
-        this.renderNav();
-      } catch (error) {
-        alert('Invalid token or unable to connect to API');
-      }
+    container.innerHTML = '<div id="auth-container"></div>';
+    
+    const authContainer = document.getElementById('auth-container');
+    const auth = new Auth(authContainer, this.api, () => {
+      this.renderNav();
+      this.navigateTo('dashboard');
     });
+    
+    auth.render();
   }
 
   showSettingsModal() {
