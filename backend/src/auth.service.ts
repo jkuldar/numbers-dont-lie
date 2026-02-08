@@ -205,6 +205,18 @@ export class AuthService {
   private async sendVerificationEmail(email: string, code: string) {
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?code=${code}`;
 
+    // In development, log the verification code
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('╔════════════════════════════════════════════════════════════╗');
+      console.log('║  EMAIL VERIFICATION CODE (Development Only)               ║');
+      console.log('╠════════════════════════════════════════════════════════════╣');
+      console.log(`║  Email: ${email.padEnd(48)} ║`);
+      console.log(`║  Code:  ${code.substring(0, 48).padEnd(48)} ║`);
+      console.log('║  ────────────────────────────────────────────────────────  ║');
+      console.log(`║  Verify URL: https://localhost:3000/auth/verify-email?code=${code}`);
+      console.log('╚════════════════════════════════════════════════════════════╝');
+    }
+
     try {
       await this.mailTransporter.sendMail({
         from: process.env.SMTP_FROM || 'noreply@wellness.local',
@@ -214,6 +226,9 @@ export class AuthService {
       });
     } catch (error) {
       console.error('Email send failed:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('⚠️  SMTP not configured - use the verification code above');
+      }
     }
   }
 

@@ -50,6 +50,20 @@ export class AuthController {
     }
   }
 
+  // Also support GET for browser-based verification
+  @Get('verify-email')
+  async verifyEmailGet(@Query('code') code: string) {
+    if (!code) {
+      throw new BadRequestException('Verification code required');
+    }
+    try {
+      const result = await this.authService.verifyEmail(code);
+      return result;
+    } catch (error) {
+      throw new BadRequestException((error as Error).message);
+    }
+  }
+
   @Post('refresh')
   async refresh(@Body() body: { refreshToken: string }) {
     if (!body.refreshToken) {

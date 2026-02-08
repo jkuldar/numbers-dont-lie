@@ -115,30 +115,46 @@ export class API {
 
   // Authentication endpoints
   async register(email, password) {
+    // Use fetch directly since we don't have a token yet
     const response = await fetch(`${this.baseURL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+      credentials: 'include',
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      let errorMessage = 'Registration failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use default error
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
   }
 
   async login(email, password) {
+    // Use fetch directly since we don't have a token yet
     const response = await fetch(`${this.baseURL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+      credentials: 'include',
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      let errorMessage = 'Login failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use default error
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -151,11 +167,18 @@ export class API {
   async verifyEmail(code) {
     const response = await fetch(`${this.baseURL}/auth/verify-email?code=${code}`, {
       method: 'POST',
+      credentials: 'include',
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Verification failed');
+      let errorMessage = 'Verification failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use default error
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
