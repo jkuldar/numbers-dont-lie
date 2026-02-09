@@ -50,7 +50,6 @@ export class ProfileForm {
                   <option value="">Select...</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
-                  <option value="other">Other</option>
                   <option value="prefer_not_to_say">Prefer not to say</option>
                 </select>
               </label>
@@ -81,7 +80,7 @@ export class ProfileForm {
               </label>
               <label class="imperial-input" style="display: none;">
                 <span>Current Weight (lbs) *</span>
-                <input type="number" name="currentWeightLbs" step="0.1" min="44" max="1100" required />
+                <input type="number" name="currentWeightLbs" step="0.1" min="44" max="1100" />
                 <span class="error" data-field="currentWeightLbs"></span>
               </label>
               <label class="metric-input">
@@ -246,11 +245,39 @@ export class ProfileForm {
     const imperialInputs = this.container.querySelectorAll('.imperial-input');
 
     if (this.useMetric) {
-      metricInputs.forEach(el => el.style.display = '');
-      imperialInputs.forEach(el => el.style.display = 'none');
+      metricInputs.forEach(el => {
+        el.style.display = '';
+        // Enable required for visible inputs
+        const inputs = el.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+          if (input.name === 'heightCm' || input.name === 'currentWeightKg') {
+            input.required = true;
+          }
+        });
+      });
+      imperialInputs.forEach(el => {
+        el.style.display = 'none';
+        // Disable required for hidden inputs
+        const inputs = el.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => input.required = false);
+      });
     } else {
-      metricInputs.forEach(el => el.style.display = 'none');
-      imperialInputs.forEach(el => el.style.display = '');
+      metricInputs.forEach(el => {
+        el.style.display = 'none';
+        // Disable required for hidden inputs
+        const inputs = el.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => input.required = false);
+      });
+      imperialInputs.forEach(el => {
+        el.style.display = '';
+        // Enable required for visible inputs
+        const inputs = el.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+          if (input.name === 'currentWeightLbs') {
+            input.required = true;
+          }
+        });
+      });
     }
   }
 

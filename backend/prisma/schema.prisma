@@ -52,7 +52,7 @@ model HealthProfile {
   
   // Demographics (encrypted)
   age                   Int?
-  gender                String?  // 'male', 'female', 'other', 'prefer_not_to_say'
+  gender                String?  // 'male', 'female', 'prefer_not_to_say'
   
   // Physical (normalized to kg, cm)
   heightCm              Float?
