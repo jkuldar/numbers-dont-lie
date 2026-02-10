@@ -79,8 +79,13 @@ export class HealthProfileService {
    * Create or update health profile with consent
    */
   async createOrUpdateProfile(userId: string, data: any) {
-    // Ensure consent is given
-    if (!data.consentGiven) {
+    // For updates, only require consent on first save
+    const existingProfile = await this.prisma.healthProfile.findUnique({
+      where: { userId },
+    });
+    
+    // If profile exists and was consented before, no need to check again
+    if (!existingProfile && !data.consentGiven) {
       throw new BadRequestException('Consent required to save health data');
     }
 

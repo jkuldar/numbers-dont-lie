@@ -193,6 +193,14 @@ export class ProfileForm {
             </label>
           </section>
 
+          <!-- Consent -->
+          <section class="form-section">
+            <label class="checkbox-label">
+              <input type="checkbox" name="consentGiven" required />
+              <span>I consent to storing my health data securely (required)</span>
+            </label>
+          </section>
+
           <div class="form-actions">
             <button type="submit" class="btn-primary">Save Profile</button>
             <button type="button" class="btn-secondary" id="cancel-profile">Cancel</button>
@@ -314,10 +322,14 @@ export class ProfileForm {
 
     // Parse form data
     for (let [key, value] of formData.entries()) {
-      if (value === '') continue;
+      if (value === '' && key !== 'consentGiven') continue;
       
+      // Boolean (checkbox)
+      if (key === 'consentGiven') {
+        data[key] = formData.get(key) === 'on' || formData.get(key) === 'true';
+      }
       // Arrays (comma-separated)
-      if (['dietaryPreferences', 'allergies', 'restrictions', 'medicalConditions', 'medications'].includes(key)) {
+      else if (['dietaryPreferences', 'allergies', 'restrictions', 'medicalConditions', 'medications'].includes(key)) {
         data[key] = value.split(',').map(v => v.trim()).filter(v => v);
       }
       // Numbers
@@ -393,6 +405,8 @@ export class ProfileForm {
   fillForm(profile) {
     const form = this.container.querySelector('#profile-form');
     
+    if (!profile) return; // Handle null profile for new users
+    
     // Simple fields
     const fields = ['age', 'gender', 'heightCm', 'currentWeightKg', 'targetWeightKg',
                     'activityLevel', 'sleepHoursPerDay', 'stressLevel', 'fitnessLevel',
@@ -404,6 +418,12 @@ export class ProfileForm {
         input.value = profile[field];
       }
     });
+
+    // Checkbox for consent
+    const consentInput = form.querySelector('[name="consentGiven"]');
+    if (consentInput && profile.consentGiven) {
+      consentInput.checked = true;
+    }
 
     // Date field
     if (profile.targetDate) {

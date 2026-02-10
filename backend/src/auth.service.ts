@@ -213,7 +213,7 @@ export class AuthService {
       console.log(`║  Email: ${email.padEnd(48)} ║`);
       console.log(`║  Code:  ${code.substring(0, 48).padEnd(48)} ║`);
       console.log('║  ────────────────────────────────────────────────────────  ║');
-      console.log(`║  Verify URL: https://localhost:3000/auth/verify-email?code=${code}`);
+      console.log(`║  Verify URL: ${verificationUrl}`);
       console.log('╚════════════════════════════════════════════════════════════╝');
     }
 

@@ -58,8 +58,9 @@ export class HealthProfileController {
     const userId = req.user.userId;
     const profile = await this.healthProfileService.getProfile(userId);
     
+    // Return null if no profile exists (not an error for new users)
     if (!profile) {
-      throw new NotFoundException('Health profile not found');
+      return null;
     }
     
     return profile;
