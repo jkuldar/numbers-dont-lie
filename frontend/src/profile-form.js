@@ -1,10 +1,5 @@
 // Profile form component
 import { 
-  kgToLbs, 
-  lbsToKg, 
-  cmToInches, 
-  feetInchesToCm,
-  cmToFeetInches,
   validatePositiveNumber, 
   validateAge,
   getErrorMessage,
@@ -18,7 +13,6 @@ export class ProfileForm {
     this.api = api;
     this.onSave = onSave;
     this.errors = {};
-    this.useMetric = true; // Default to metric
     this.render();
     this.attachListeners();
   }
@@ -29,10 +23,7 @@ export class ProfileForm {
         <div class="form-header">
           <h2>Health Profile</h2>
           <div class="unit-toggle">
-            <button type="button" class="unit-btn active" data-unit="metric">Metric</button>
-            <button type="button" class="unit-btn" data-unit="imperial">Imperial</button>
-          </div>
-        </div>
+
 
         <form id="profile-form">
           <!-- Demographics -->
@@ -63,36 +54,19 @@ export class ProfileForm {
               <label class="metric-input">
                 <span>Height (cm) *</span>
                 <input type="number" name="heightCm" step="0.1" min="50" max="300" required />
+                <spa>
+                <span>Height (cm) *</span>
+                <input type="number" name="heightCm" step="0.1" min="50" max="300" required />
                 <span class="error" data-field="heightCm"></span>
               </label>
-              <label class="imperial-input" style="display: none;">
-                <span>Height (ft/in) *</span>
-                <div class="height-imperial">
-                  <input type="number" name="heightFeet" min="3" max="9" placeholder="ft" />
-                  <input type="number" name="heightInches" min="0" max="11" placeholder="in" />
-                </div>
-                <span class="error" data-field="height"></span>
-              </label>
-              <label class="metric-input">
+              <label>
                 <span>Current Weight (kg) *</span>
                 <input type="number" name="currentWeightKg" step="0.1" min="20" max="500" required />
                 <span class="error" data-field="currentWeightKg"></span>
               </label>
-              <label class="imperial-input" style="display: none;">
-                <span>Current Weight (lbs) *</span>
-                <input type="number" name="currentWeightLbs" step="0.1" min="44" max="1100" />
-                <span class="error" data-field="currentWeightLbs"></span>
-              </label>
-              <label class="metric-input">
+              <label>
                 <span>Target Weight (kg)</span>
-                <input type="number" name="targetWeightKg" step="0.1" min="20" max="500" />
-              </label>
-              <label class="imperial-input" style="display: none;">
-                <span>Target Weight (lbs)</span>
-                <input type="number" name="targetWeightLbs" step="0.1" min="44" max="1100" />
-              </label>
-            </div>
-          </section>
+                <input type="number" name="targetWeightKg" step="0.1" min="20" max="5
 
           <!-- Lifestyle -->
           <section class="form-section">
@@ -232,18 +206,7 @@ export class ProfileForm {
     });
 
     // Cancel
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => {
-        if (this.onCancel) this.onCancel();
-      });
-    }
-
-    // Real-time validation
-    const inputs = form.querySelectorAll('input[required]');
-    inputs.forEach(input => {
-      input.addEventListener('blur', () => {
-        this.validateField(input);
-      });
+    if (cacancelBtn = this.container.querySelector('#cancel-profile' });
     });
   }
 
@@ -275,48 +238,6 @@ export class ProfileForm {
         // Disable required for hidden inputs
         const inputs = el.querySelectorAll('input[type="number"]');
         inputs.forEach(input => input.required = false);
-      });
-      imperialInputs.forEach(el => {
-        el.style.display = '';
-        // Enable required for visible inputs
-        const inputs = el.querySelectorAll('input[type="number"]');
-        inputs.forEach(input => {
-          if (input.name === 'currentWeightLbs') {
-            input.required = true;
-          }
-        });
-      });
-    }
-  }
-
-  validateField(input) {
-    const name = input.name;
-    const value = input.value.trim();
-    const errorSpan = this.container.querySelector(`[data-field="${name}"]`);
-
-    if (!errorSpan) return true;
-
-    let error = '';
-
-    if (input.required && !value) {
-      error = 'This field is required';
-    } else if (name === 'age' && !validateAge(value)) {
-      error = 'Age must be between 13 and 120';
-    } else if ((name === 'heightCm' || name === 'currentWeightKg' || name === 'targetWeightKg') && value && !validatePositiveNumber(value)) {
-      error = 'Must be a positive number';
-    }
-
-    errorSpan.textContent = error;
-    this.errors[name] = error;
-
-    return !error;
-  }
-
-  async handleSubmit(form) {
-    const formData = new FormData(form);
-    const data = {};
-
-    // Clear previous errors
     this.errors = {};
     this.container.querySelectorAll('.error').forEach(el => el.textContent = '');
 
@@ -412,26 +333,7 @@ export class ProfileForm {
                     'activityLevel', 'sleepHoursPerDay', 'stressLevel', 'fitnessLevel',
                     'primaryGoal', 'weeklyActivityGoal'];
     
-    fields.forEach(field => {
-      const input = form.querySelector(`[name="${field}"]`);
-      if (input && profile[field] !== null && profile[field] !== undefined) {
-        input.value = profile[field];
-      }
-    });
-
-    // Checkbox for consent
-    const consentInput = form.querySelector('[name="consentGiven"]');
-    if (consentInput && profile.consentGiven) {
-      consentInput.checked = true;
-    }
-
-    // Date field
-    if (profile.targetDate) {
-      const dateInput = form.querySelector('[name="targetDate"]');
-      if (dateInput) {
-        dateInput.value = new Date(profile.targetDate).toISOString().split('T')[0];
-      }
-    }
+    fie
 
     // Array fields
     const arrayFields = ['dietaryPreferences', 'allergies', 'restrictions', 'medicalConditions', 'medications'];

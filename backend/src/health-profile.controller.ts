@@ -32,9 +32,7 @@ export class HealthProfileController {
     }
 
     try {
-      // Normalize units before saving
-      const normalizedData = this.healthProfileService.normalizeUnits(body);
-      return await this.healthProfileService.createOrUpdateProfile(userId, normalizedData);
+      return await this.healthProfileService.createOrUpdateProfile(userId, body);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }
@@ -45,9 +43,7 @@ export class HealthProfileController {
     const userId = req.user.userId;
     
     try {
-      // Normalize units before saving
-      const normalizedData = this.healthProfileService.normalizeUnits(body);
-      return await this.healthProfileService.createOrUpdateProfile(userId, normalizedData);
+      return await this.healthProfileService.createOrUpdateProfile(userId, body);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }
@@ -67,18 +63,17 @@ export class HealthProfileController {
   }
 
   @Post('weight')
-  async addWeightEntry(@Req() req: AuthedRequest, @Body() body: { weightKg?: number; weight?: number; unit?: string; note?: string }) {
+  async addWeightEntry(@Req() req: AuthedRequest, @Body() body: { weightKg?: number; weight?: number; note?: string }) {
     const userId = req.user.userId;
     
     // Support both weightKg and weight fields
-    const weightValue = body.weightKg || body.weight;
+    const weightKg = body.weightKg || body.weight;
     
-    if (!weightValue || weightValue <= 0) {
-      throw new BadRequestException('Valid weight required');
+    if (!weightKg || weightKg <= 0) {
+      throw new BadRequestException('Valid weight (kg) required');
     }
 
     try {
-      const weightKg = body.weightKg || this.healthProfileService.convertWeightToKg(body.weight!, body.unit || 'kg');
       return await this.healthProfileService.addWeightEntry(userId, weightKg, body.note);
     } catch (error) {
       throw new BadRequestException((error as Error).message);

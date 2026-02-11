@@ -33,7 +33,7 @@ This platform helps users track their health metrics, set wellness goals, and re
   - Health habits (20%)
 - Weight and activity history with timestamps
 - Duplicate entry prevention
-- Unit normalization (automatic kg/cm conversion)
+- Metric units (kg, cm) for all measurements
 
 ### 📊 Analytics & Insights
 - Weekly and monthly health summaries
@@ -206,7 +206,7 @@ npm run test:cov
    - Wellness score calculation
    - Weight history tracking
    - Duplicate entry prevention
-   - Unit normalization (lbs→kg, ft→cm)
+   - Metric units (kg, cm) for all measurements
    - Weekly/monthly summaries
    - Data consent validation
 
@@ -521,10 +521,10 @@ open coverage/lcov-report/index.html
 - **Trade-offs:** Limited advanced visualizations vs. simpler maintenance
 - **Alternatives:** D3.js (more complex), Recharts (React-specific)
 
-**Normalization Impact:**
+**Metric System:**
 - All metrics in standard units (kg, cm)
 - **Pros:** Consistent comparisons, accurate calculations, simpler charting
-- **Implementation:** Convert at input, store normalized, display in user's preferred unit
+- **Implementation:** Store and display in metric units
 
 **Missing Data Handling:**
 - Required fields: Cannot generate insights without basics

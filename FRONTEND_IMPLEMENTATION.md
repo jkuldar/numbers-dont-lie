@@ -7,7 +7,7 @@
 - **Features**:
   - Complete demographic information (age, gender)
   - Physical measurements (height, weight - current & target)
-  - Unit conversion between metric and imperial
+  - Metric units (kg, cm) for all measurements
   - Lifestyle factors (activity level, sleep, stress, fitness level)
   - Dietary preferences and restrictions
   - Goals (primary goal, target date, weekly activity target)
@@ -69,7 +69,6 @@
 - All backend endpoints integrated
 
 #### Utilities (`/frontend/src/utils.js`)
-- Unit conversions (kg/lbs, cm/inches, feet+inches/cm)
 - BMI calculation and classification
 - Date formatting
 - Validation helpers
@@ -154,7 +153,7 @@ npm run build
 ## 🎯 Testing Ready
 
 All features from the project plan are implemented:
-- ✅ Health profile form with unit conversion
+- ✅ Health profile form with metric units
 - ✅ BMI class, wellness score, goal progress display
 - ✅ Progress and comparison charts
 - ✅ Loading/error states without page reload

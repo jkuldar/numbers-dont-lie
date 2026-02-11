@@ -424,69 +424,6 @@ describe('Health Profile & Analytics E2E Tests', () => {
     });
   });
 
-  describe('Unit Normalization', () => {
-    it('should convert pounds to kg before storage', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/health-profile/weight-history')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          weight: 165, // pounds
-          unit: 'lbs',
-          recordedAt: new Date('2026-02-01'),
-        })
-        .expect(201);
-
-      // 165 lbs = ~74.84 kg
-      expect(response.body.weight).toBeCloseTo(74.84, 1);
-    });
-
-    it('should convert feet/inches to cm before storage', async () => {
-      const newTestEmail = `height-test-${Date.now()}@example.com`;
-      const password = 'TestPassword123!';
-
-      // Register, verify, login
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({ email: newTestEmail, password });
-
-      const user = await prisma.user.findUnique({
-        where: { email: newTestEmail },
-      });
-
-      await request(app.getHttpServer())
-        .post('/auth/verify-email')
-        .query({ code: user.verificationCode });
-
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ email: newTestEmail, password });
-
-      const token = loginResponse.body.accessToken;
-
-      // Create profile with feet/inches
-      const response = await request(app.getHttpServer())
-        .post('/health-profile')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          age: 25,
-          biologicalSex: 'female',
-          height: 5.9, // 5'9" = 175.26 cm
-          heightUnit: 'ft',
-          currentWeight: 65,
-          weightUnit: 'kg',
-          goalWeight: 60,
-          goalType: 'weight_loss',
-          activityLevel: 'moderate',
-          exerciseFrequency: 3,
-          sleepHours: 7,
-          stressLevel: 'low',
-          dataUsageConsent: true,
-        });
-
-      expect(response.body.height).toBeCloseTo(175.26, 0);
-    });
-  });
-
   describe('Data Privacy & Consent', () => {
     it('should require data usage consent before creating profile', async () => {
       const newEmail = `consent-test-${Date.now()}@example.com`;
