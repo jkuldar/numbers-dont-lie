@@ -12,7 +12,6 @@ import { PrismaService } from './prisma.service';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
 import { GithubStrategy } from './github.strategy';
-import { EncryptionService } from './encryption.service';
 import { TwoFAService } from './twofa.service';
 import { HealthProfileController } from './health-profile.controller';
 import { HealthProfileService } from './health-profile.service';
@@ -65,7 +64,6 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
     AuthService,
     PrismaService,
     ...oauthStrategies,
-    EncryptionService,
     TwoFAService,
     HealthProfileService,
     PrivacySettingsService,

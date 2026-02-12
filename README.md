@@ -8,7 +8,7 @@ This platform helps users track their health metrics, set wellness goals, and re
 
 - **Backend:** NestJS + PostgreSQL + Prisma
 - **Frontend:** Vanilla JavaScript with Chart.js for visualizations
-- **Security:** End-to-end encryption, JWT authentication, 2FA support
+- **Security:** JWT authentication, 2FA support, secure data storage
 - **AI:** OpenAI GPT-3.5-turbo for personalized health insights
 - **Deployment:** Docker with single-command setup
 
@@ -20,7 +20,6 @@ This platform helps users track their health metrics, set wellness goals, and re
 - Password reset via email
 - Two-Factor Authentication (TOTP)
 - JWT-based session management (access + refresh tokens)
-- Field-level encryption for sensitive health data
 - HTTPS with SSL certificates
 
 ### 💪 Health Tracking
@@ -62,7 +61,7 @@ This platform helps users track their health metrics, set wellness goals, and re
 ### 🛡️ Privacy & Compliance
 - Explicit data usage consent
 - Privacy settings management
-- Data export functionality (JSON/CSV)
+- Data export functionality (JSON)
 - GDPR-compliant data handling
 - Encryption at rest and in transit
 
@@ -81,7 +80,6 @@ This platform helps users track their health metrics, set wellness goals, and re
 
 ### Encryption at Rest
 - PostgreSQL configured with SSL
-- Field-level encryption for sensitive data using AES-256-GCM
 - Password hashing with bcrypt
 
 ### Authentication & Authorization
@@ -133,7 +131,6 @@ This platform helps users track their health metrics, set wellness goals, and re
 │   ├── src/
 │   │   ├── auth.controller.ts
 │   │   ├── auth.service.ts
-│   │   ├── encryption.service.ts
 │   │   ├── jwt-auth.guard.ts
 │   │   ├── jwt.strategy.ts
 │   │   └── ...
@@ -168,80 +165,7 @@ cp .env.example .env
 - `ENCRYPTION_KEY` - Key for field-level encryption (32 chars)
 - `SMTP_*` - Email configuration for verification emails
 
-## 🧪 Testing
 
-The project includes comprehensive E2E tests covering all mandatory requirements.
-
-### Quick Start
-
-```bash
-# Install dependencies
-cd backend
-npm install
-
-# Run all tests
-npm test
-
-# Run E2E tests only
-npm run test:e2e
-
-# Run with coverage
-npm run test:cov
-```
-
-### Test Suites
-
-1. **Authentication Tests** (`auth.e2e-spec.ts`)
-   - Email verification flow
-   - Protected routes without verification
-   - OAuth flows (Google & GitHub)
-   - Password reset
-   - 2FA enable/disable/verify
-   - Refresh token functionality
-   - Access token expiration
-
-2. **Health Profile Tests** (`health-profile.e2e-spec.ts`)
-   - Profile creation with all fields
-   - BMI calculation and classification
-   - Wellness score calculation
-   - Weight history tracking
-   - Duplicate entry prevention
-   - Metric units (kg, cm) for all measurements
-   - Weekly/monthly summaries
-   - Data consent validation
-
-3. **AI Insights Tests** (`ai-insights.e2e-spec.ts`)
-   - AI recommendation generation
-   - Goal alignment verification
-   - PII exclusion checks
-   - Dietary restriction validation
-   - Goal change adaptation
-   - Response caching
-   - Fallback mechanism
-
-4. **Rate Limiting Tests** (`rate-limiting.e2e-spec.ts`)
-   - Rapid request blocking
-   - Rate limit headers
-   - Per-user limits
-   - Login brute-force prevention
-
-### Manual Testing
-
-For comprehensive manual testing instructions, including OAuth flows and browser-based tests, see **[TESTING_GUIDE.md](TESTING_GUIDE.md)**.
-
-### Test Coverage
-
-Target coverage:
-- Statements: > 80%
-- Branches: > 75%
-- Functions: > 80%
-- Lines: > 80%
-
-View coverage report:
-```bash
-npm run test:cov
-open coverage/lcov-report/index.html
-```
 
 ## 📖 Usage Guide
 
@@ -283,7 +207,7 @@ open coverage/lcov-report/index.html
 
 1. Go to Privacy Settings
 2. Adjust data sharing preferences
-3. Export your data anytime (JSON/CSV format)
+3. Export your data anytime (JSON format)
 4. Review what data is collected and how it's used
 
 ### 6. Enable 2FA (Optional but Recommended)
@@ -423,14 +347,14 @@ open coverage/lcov-report/index.html
    - Complete GitHub login
    - You'll be redirected to frontend with tokens
 
-**Note:** OAuth requires setting up credentials. See [OAUTH_2FA_SETUP.md](OAUTH_2FA_SETUP.md) for details.
+**Note:** OAuth requires setting up credentials in the `.env` file with Google and GitHub OAuth client IDs and secrets.
 
 ## 📊 Development Status
 
 ### ✅ Completed Features
 - [x] Docker setup with single command execution
 - [x] HTTPS with self-signed certificates
-- [x] Database encryption (SSL + field-level encryption)
+- [x] Database encryption with SSL
 - [x] Email-password authentication with verification
 - [x] JWT access tokens (15 min) + refresh tokens (7 days)
 - [x] Protected routes with email verification guards
@@ -450,7 +374,6 @@ open coverage/lcov-report/index.html
 - [x] AI caching and fallback mechanism
 - [x] Hallucination detection and safety checks
 - [x] Rate limiting (60 req/min)
-- [x] Comprehensive E2E test suite
 - [x] Dashboard with charts and visualizations
 - [x] Privacy settings and data export
 
@@ -558,7 +481,7 @@ OPENAI_API_KEY=sk-...
 - `GET /ai/insights?limit=10` - Get insight history
 - `POST /ai/invalidate-cache` - Force regeneration of insights
 
-See [AI_DOCUMENTATION.md](AI_DOCUMENTATION.md) for detailed information.
+
 
 ## �‍💻 Development
 
@@ -582,10 +505,7 @@ docker-compose exec backend npx prisma studio
 
 ## � Additional Documentation
 
-- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Comprehensive testing instructions and manual test procedures
-- **[AI_DOCUMENTATION.md](AI_DOCUMENTATION.md)** - Detailed AI implementation documentation
-- **[OAUTH_2FA_SETUP.md](OAUTH_2FA_SETUP.md)** - OAuth and 2FA setup guide
-- **[project_plan.md](project_plan.md)** - Original project plan and development roadmap
+- **[project.md](project.md)** - Project requirements and specifications
 - **[testing.md](testing.md)** - Testing requirements and criteria
 
 ## �🐛 Troubleshooting
@@ -618,23 +538,7 @@ docker-compose logs -f backend | grep "Verification"
 
 Copy the verification code/token from the logs.
 
-### Tests Failing
 
-```bash
-# Clean install
-cd backend
-rm -rf node_modules package-lock.json
-npm install
-
-# Ensure database is running
-docker-compose up -d postgres
-
-# Run migrations
-npx prisma migrate deploy
-
-# Run tests
-npm test
-```
 
 ## 🚀 Production Deployment
 

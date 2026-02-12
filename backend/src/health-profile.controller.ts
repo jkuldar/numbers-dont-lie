@@ -155,12 +155,11 @@ export class HealthProfileController {
   }
 
   @Get('export')
-  async exportData(@Req() req: AuthedRequest, @Body() body?: { format?: 'json' | 'csv' }) {
+  async exportData(@Req() req: AuthedRequest) {
     const userId = req.user.userId;
-    const format = body?.format || 'json';
     
     try {
-      return await this.healthProfileService.exportUserData(userId, format);
+      return await this.healthProfileService.exportUserData(userId);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }

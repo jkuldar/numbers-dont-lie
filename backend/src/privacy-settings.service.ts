@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from './prisma.service';
-import { EncryptionService } from './encryption.service';
 
 @Injectable()
 export class PrivacySettingsService {
   constructor(
     private prisma: PrismaService,
-    private encryptionService: EncryptionService,
   ) {}
 
   /**
@@ -123,29 +121,22 @@ export class PrivacySettingsService {
     }
 
     if (settings.includeDietary) {
-      aiData.dietaryPreferences = this.decryptAndSanitizeArray(healthProfile.dietaryPreferences);
-      aiData.allergies = this.decryptAndSanitizeArray(healthProfile.allergies);
-      aiData.restrictions = this.decryptAndSanitizeArray(healthProfile.restrictions);
+      aiData.dietaryPreferences = this.sanitizeArray(healthProfile.dietaryPreferences);
+      aiData.allergies = this.sanitizeArray(healthProfile.allergies);
+      aiData.restrictions = this.sanitizeArray(healthProfile.restrictions);
     }
 
     if (settings.includeMedical) {
-      aiData.medicalConditions = this.decryptAndSanitizeArray(healthProfile.medicalConditions);
-      aiData.medications = this.decryptAndSanitizeArray(healthProfile.medications);
+      aiData.medicalConditions = this.sanitizeArray(healthProfile.medicalConditions);
+      aiData.medications = this.sanitizeArray(healthProfile.medications);
     }
 
     return aiData;
   }
 
-  private decryptAndSanitizeArray(values?: string[]) {
+  private sanitizeArray(values?: string[]) {
     if (!values || values.length === 0) return [];
-    return values.map((v) => {
-      try {
-        const decrypted = this.encryptionService.decrypt(v);
-        return this.redactPII(decrypted);
-      } catch {
-        return this.redactPII(v);
-      }
-    });
+    return values.map((v) => this.redactPII(v));
   }
 
   private redactPII(value?: string | null) {

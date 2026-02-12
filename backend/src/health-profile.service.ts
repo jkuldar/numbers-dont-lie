@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { EncryptionService } from './encryption.service';
 
 type SummaryPeriod = 'week' | 'month';
 
@@ -8,7 +7,6 @@ type SummaryPeriod = 'week' | 'month';
 export class HealthProfileService {
   constructor(
     private prisma: PrismaService,
-    private encryptionService: EncryptionService,
   ) {}
 
   /**
@@ -36,15 +34,15 @@ export class HealthProfileService {
       activityLevel: data.activityLevel,
       sleepHoursPerDay: data.sleepHoursPerDay,
       stressLevel: data.stressLevel,
-      dietaryPreferences: this.encryptArray(data.dietaryPreferences),
-      allergies: this.encryptArray(data.allergies),
-      restrictions: this.encryptArray(data.restrictions),
+      dietaryPreferences: data.dietaryPreferences || [],
+      allergies: data.allergies || [],
+      restrictions: data.restrictions || [],
       primaryGoal: data.primaryGoal,
       targetDate: data.targetDate ? new Date(data.targetDate) : null,
       weeklyActivityGoal: data.weeklyActivityGoal,
       fitnessLevel: data.fitnessLevel,
-      medicalConditions: this.encryptArray(data.medicalConditions),
-      medications: this.encryptArray(data.medications),
+      medicalConditions: data.medicalConditions || [],
+      medications: data.medications || [],
     };
 
     // Upsert health profile
@@ -285,7 +283,7 @@ export class HealthProfileService {
   /**
    * Export all user data (GDPR compliance)
    */
-  async exportUserData(userId: string, format: 'json' | 'csv') {
+  async exportUserData(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -320,93 +318,12 @@ export class HealthProfileService {
       exportedAt: new Date().toISOString(),
     };
 
-    if (format === 'csv') {
-      return this.convertToCSV(exportData);
-    }
-
     return exportData;
-  }
-
-  /**
-   * Convert export data to CSV format
-   */
-  private convertToCSV(data: any): string {
-    let csv = '';
-
-    // User info
-    csv += 'USER INFORMATION\n';
-    csv += 'Field,Value\n';
-    if (data.user) {
-      Object.entries(data.user).forEach(([key, value]) => {
-        csv += `${key},${value}\n`;
-      });
-    }
-    csv += '\n';
-
-    // Health Profile
-    csv += 'HEALTH PROFILE\n';
-    csv += 'Field,Value\n';
-    if (data.healthProfile) {
-      Object.entries(data.healthProfile).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          csv += `${key},"${value.join(', ')}"\n`;
-        } else {
-          csv += `${key},${value}\n`;
-        }
-      });
-    }
-    csv += '\n';
-
-    // Weight History
-    csv += 'WEIGHT HISTORY\n';
-    csv += 'Date,Weight (kg),Note\n';
-    if (data.weightHistory && data.weightHistory.length > 0) {
-      data.weightHistory.forEach((entry: any) => {
-        csv += `${entry.recordedAt},${entry.weightKg},${entry.note || ''}\n`;
-      });
-    }
-    csv += '\n';
-
-    // Privacy Settings
-    csv += 'PRIVACY SETTINGS\n';
-    csv += 'Setting,Value\n';
-    if (data.privacySettings) {
-      Object.entries(data.privacySettings).forEach(([key, value]) => {
-        csv += `${key},${value}\n`;
-      });
-    }
-
-    csv += `\nExported at,${data.exportedAt}\n`;
-
-    return csv;
-  }
-
-  private encryptArray(values?: string[]): string[] {
-    if (!values || values.length === 0) return [];
-    return values.map((v) => this.encryptionService.encrypt(v));
-  }
-
-  private decryptArray(values?: string[]): string[] {
-    if (!values || values.length === 0) return [];
-    return values.map((v) => {
-      try {
-        return this.encryptionService.decrypt(v);
-      } catch {
-        return v;
-      }
-    });
   }
 
   private decryptProfile(profile: any) {
     if (!profile) return profile;
-    return {
-      ...profile,
-      dietaryPreferences: this.decryptArray(profile.dietaryPreferences),
-      allergies: this.decryptArray(profile.allergies),
-      restrictions: this.decryptArray(profile.restrictions),
-      medicalConditions: this.decryptArray(profile.medicalConditions),
-      medications: this.decryptArray(profile.medications),
-    };
+    return profile;
   }
 
   private async recalculateDerivedMetrics(userId: string) {
