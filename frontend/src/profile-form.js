@@ -204,10 +204,6 @@ export class ProfileForm {
       e.preventDefault();
       this.handleSubmit(form);
     });
-
-    // Cancel
-    if (cacancelBtn = this.container.querySelector('#cancel-profile' });
-    });
   }
 
   toggleUnits(unit) {
@@ -238,6 +234,24 @@ export class ProfileForm {
         // Disable required for hidden inputs
         const inputs = el.querySelectorAll('input[type="number"]');
         inputs.forEach(input => input.required = false);
+      });
+      imperialInputs.forEach(el => {
+        el.style.display = '';
+        // Enable required for visible inputs
+        const inputs = el.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+          if (input.name === 'heightFeet' || input.name === 'heightInches' || input.name === 'currentWeightLbs') {
+            input.required = true;
+          }
+        });
+      });
+    }
+  }
+
+  async handleSubmit(form) {
+    const formData = new FormData(form);
+    const data = {};
+    
     this.errors = {};
     this.container.querySelectorAll('.error').forEach(el => el.textContent = '');
 
