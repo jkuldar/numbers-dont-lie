@@ -70,8 +70,17 @@ class App {
   checkAuth() {
     const token = this.api.getToken();
     
-    // Check for OAuth callback
+    // Check for email verification
     const urlParams = new URLSearchParams(window.location.search);
+    const verificationCode = urlParams.get('code');
+    
+    if (verificationCode) {
+      // Email verification callback
+      this.handleEmailVerification(verificationCode);
+      return;
+    }
+    
+    // Check for OAuth callback
     const accessToken = urlParams.get('accessToken');
     const refreshToken = urlParams.get('refreshToken');
     
@@ -91,6 +100,88 @@ class App {
       this.showAuthScreen();
     } else {
       this.navigateTo('dashboard');
+    }
+  }
+
+  async handleEmailVerification(code) {
+    const container = document.getElementById('app-content');
+    container.innerHTML = `
+      <div class="auth-container">
+        <div class="auth-card">
+          <div class="auth-header">
+            <h1>E-maili kinnitamine</h1>
+          </div>
+          <div class="auth-body">
+            <div class="verification-status">
+              <div class="loading-spinner">Kinnitame sinu e-maili...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    try {
+      await this.api.verifyEmail(code);
+      
+      // Success - show message and redirect to login
+      container.innerHTML = `
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h1>E-mail kinnitatud!</h1>
+            </div>
+            <div class="auth-body">
+              <div class="verification-notice">
+                <div class="verification-icon">✅</div>
+                <h3>Suurepärane!</h3>
+                <p>Sinu e-mail on edukalt kinnitatud.</p>
+                <p>Nüüd saad sisse logida.</p>
+                <button class="btn-primary" id="goto-login">
+                  Logi sisse
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Attach login button handler
+      document.getElementById('goto-login')?.addEventListener('click', () => {
+        this.showAuthScreen();
+      });
+
+    } catch (error) {
+      // Error - show message
+      container.innerHTML = `
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h1>Kinnitamine ebaõnnestus</h1>
+            </div>
+            <div class="auth-body">
+              <div class="verification-notice">
+                <div class="verification-icon">❌</div>
+                <h3>Midagi läks valesti</h3>
+                <p>${error.message || 'Kinnituskood on vigane või aegunud.'}</p>
+                <button class="btn-primary" id="goto-login">
+                  Tagasi sisselogimisele
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Attach login button handler
+      document.getElementById('goto-login')?.addEventListener('click', () => {
+        this.showAuthScreen();
+      });
     }
   }
 
