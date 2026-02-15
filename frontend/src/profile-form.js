@@ -54,9 +54,6 @@ export class ProfileForm {
               <label class="metric-input">
                 <span>Height (cm) *</span>
                 <input type="number" name="heightCm" step="0.1" min="50" max="300" required />
-                <spa>
-                <span>Height (cm) *</span>
-                <input type="number" name="heightCm" step="0.1" min="50" max="300" required />
                 <span class="error" data-field="heightCm"></span>
               </label>
               <label>
@@ -66,7 +63,11 @@ export class ProfileForm {
               </label>
               <label>
                 <span>Target Weight (kg)</span>
-                <input type="number" name="targetWeightKg" step="0.1" min="20" max="5
+                <input type="number" name="targetWeightKg" step="0.1" min="20" max="500" />
+                <span class="error" data-field="targetWeightKg"></span>
+              </label>
+            </div>
+          </section>
 
           <!-- Lifestyle -->
           <section class="form-section">
