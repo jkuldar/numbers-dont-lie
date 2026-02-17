@@ -36,7 +36,10 @@ class App {
         </div>
         <div class="nav-actions">
           <button class="btn-icon" id="settings-btn" title="Settings">⚙️</button>
-          <button class="btn-icon" id="logout-btn" title="Logout">🚪</button>
+          <button class="btn-icon btn-logout" id="logout-btn" title="Logi välja" aria-label="Logi välja">
+            <span class="btn-icon__glyph">⏻</span>
+            <span class="btn-icon__label">Logi välja</span>
+          </button>
         </div>
       </nav>
     `;
