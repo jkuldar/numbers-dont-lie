@@ -340,22 +340,55 @@ export class ProfileForm {
 
   fillForm(profile) {
     const form = this.container.querySelector('#profile-form');
-    
+
     if (!profile) return; // Handle null profile for new users
-    
+
+    // Some endpoints return { message, profile }
+    const resolvedProfile = profile.profile ? profile.profile : profile;
+
     // Simple fields
-    const fields = ['age', 'gender', 'heightCm', 'currentWeightKg', 'targetWeightKg',
-                    'activityLevel', 'sleepHoursPerDay', 'stressLevel', 'fitnessLevel',
-                    'primaryGoal', 'weeklyActivityGoal'];
-    
-    fie
+    const fields = [
+      'age',
+      'gender',
+      'heightCm',
+      'currentWeightKg',
+      'targetWeightKg',
+      'activityLevel',
+      'sleepHoursPerDay',
+      'stressLevel',
+      'fitnessLevel',
+      'primaryGoal',
+      'weeklyActivityGoal',
+    ];
+
+    fields.forEach(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      if (!input) return;
+      const value = resolvedProfile[field];
+      if (value !== null && value !== undefined) {
+        input.value = value;
+      }
+    });
+
+    const targetDateInput = form.querySelector('[name="targetDate"]');
+    if (targetDateInput && resolvedProfile.targetDate) {
+      const date = new Date(resolvedProfile.targetDate);
+      if (!Number.isNaN(date.getTime())) {
+        targetDateInput.value = date.toISOString().split('T')[0];
+      }
+    }
+
+    const consentInput = form.querySelector('[name="consentGiven"]');
+    if (consentInput) {
+      consentInput.checked = Boolean(resolvedProfile.consentGiven);
+    }
 
     // Array fields
     const arrayFields = ['dietaryPreferences', 'allergies', 'restrictions', 'medicalConditions', 'medications'];
     arrayFields.forEach(field => {
       const input = form.querySelector(`[name="${field}"]`);
-      if (input && Array.isArray(profile[field])) {
-        input.value = profile[field].join(', ');
+      if (input && Array.isArray(resolvedProfile[field])) {
+        input.value = resolvedProfile[field].join(', ');
       }
     });
   }
