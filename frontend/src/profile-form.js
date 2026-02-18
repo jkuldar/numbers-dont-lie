@@ -145,6 +145,7 @@ export class ProfileForm {
               <label>
                 <span>Target Date</span>
                 <input type="date" name="targetDate" />
+                <span class="error" data-field="targetDate"></span>
               </label>
               <label>
                 <span>Weekly Activity Goal (times/week)</span>
@@ -189,6 +190,18 @@ export class ProfileForm {
     const form = this.container.querySelector('#profile-form');
     const unitBtns = this.container.querySelectorAll('.unit-btn');
     const cancelBtn = this.container.querySelector('#cancel-profile');
+    const targetDateInput = form.querySelector('[name="targetDate"]');
+
+    if (targetDateInput) {
+      targetDateInput.min = this.getTodayDateString();
+      targetDateInput.addEventListener('change', () => {
+        if (targetDateInput.value && targetDateInput.value < this.getTodayDateString()) {
+          this.setFieldError('targetDate', 'Target date cannot be in the past.');
+        } else {
+          this.clearFieldError('targetDate');
+        }
+      });
+    }
 
     // Unit toggle
     unitBtns.forEach(btn => {
@@ -297,6 +310,15 @@ export class ProfileForm {
       }
     }
 
+    const targetDateInput = form.querySelector('[name="targetDate"]');
+    if (targetDateInput && targetDateInput.value) {
+      if (targetDateInput.value < this.getTodayDateString()) {
+        this.setFieldError('targetDate', 'Target date cannot be in the past.');
+      } else {
+        this.clearFieldError('targetDate');
+      }
+    }
+
     // Validate required fields
     const hasErrors = Object.values(this.errors).some(e => e);
     if (hasErrors) {
@@ -400,5 +422,25 @@ export class ProfileForm {
 
   showSuccess(message) {
     alert(message);
+  }
+
+  getTodayDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  setFieldError(field, message) {
+    this.errors[field] = message;
+    const errorEl = this.container.querySelector(`.error[data-field="${field}"]`);
+    if (errorEl) errorEl.textContent = message;
+  }
+
+  clearFieldError(field) {
+    this.errors[field] = '';
+    const errorEl = this.container.querySelector(`.error[data-field="${field}"]`);
+    if (errorEl) errorEl.textContent = '';
   }
 }
