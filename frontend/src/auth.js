@@ -1,3 +1,5 @@
+import { showToast } from './utils.js';
+
 // Authentication component
 export class Auth {
   constructor(container, api, onAuthenticated) {
@@ -182,7 +184,7 @@ export class Auth {
     if (forgotPassword) {
       forgotPassword.addEventListener('click', (e) => {
         e.preventDefault();
-        alert('Password reset functionality coming soon! Use API endpoint /auth/forgot-password');
+        showToast('Password reset functionality coming soon! Use API endpoint /auth/forgot-password', 'error');
       });
     }
   }

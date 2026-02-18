@@ -4,7 +4,8 @@ import {
   validateAge,
   getErrorMessage,
   showLoading,
-  hideLoading
+  hideLoading,
+  showToast
 } from './utils.js';
 
 export class ProfileForm {
@@ -416,12 +417,11 @@ export class ProfileForm {
   }
 
   showError(message) {
-    // You can implement a toast or modal here
-    alert(message);
+    showToast(message, 'error');
   }
 
   showSuccess(message) {
-    alert(message);
+    showToast(message, 'success');
   }
 
   getTodayDateString() {

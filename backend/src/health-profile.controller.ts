@@ -86,6 +86,16 @@ export class HealthProfileController {
     return await this.healthProfileService.getWeightHistory(userId);
   }
 
+  @Get('wellness-history')
+  async getWellnessHistory(@Req() req: AuthedRequest, @Query('days') days?: string) {
+    const userId = req.user.userId;
+    const parsedDays = days ? Number(days) : 30;
+    if (!Number.isFinite(parsedDays) || parsedDays <= 0) {
+      throw new BadRequestException('days must be a positive number');
+    }
+    return await this.healthProfileService.getWellnessHistory(userId, parsedDays);
+  }
+
   @Get('activity-entries')
   async getActivityEntries(@Req() req: AuthedRequest) {
     const userId = req.user.userId;

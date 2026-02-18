@@ -12,19 +12,20 @@ export class Charts {
 
   async load() {
     try {
-      const [weightHistory, activityEntries, profile] = await Promise.all([
+      const [weightHistory, activityEntries, profile, wellnessHistory] = await Promise.all([
         this.api.getWeightHistory().catch(() => []),
         this.api.getActivityEntries().catch(() => []),
         this.api.getHealthProfile().catch(() => null),
+        this.api.getWellnessHistory().catch(() => []),
       ]);
 
-      this.render(weightHistory, activityEntries, profile);
+      this.render(weightHistory, activityEntries, profile, wellnessHistory);
     } catch (error) {
       console.error('Failed to load charts:', error);
     }
   }
 
-  render(weightHistory, activityEntries, profile) {
+  render(weightHistory, activityEntries, profile, wellnessHistory) {
     this.container.innerHTML = `
       <div class="charts-section">
         <h2>Progress & Trends</h2>
@@ -51,7 +52,7 @@ export class Charts {
     // Render charts
     this.renderWeightChart(weightHistory, profile);
     this.renderActivityChart(activityEntries);
-    this.renderWellnessChart(profile);
+    this.renderWellnessChart(wellnessHistory);
   }
 
   renderWeightChart(weightHistory, profile) {
@@ -183,7 +184,7 @@ export class Charts {
     });
   }
 
-  renderWellnessChart(profile) {
+  renderWellnessChart(wellnessHistory) {
     const canvas = document.getElementById('wellness-chart');
     if (!canvas) return;
 
@@ -191,17 +192,22 @@ export class Charts {
       this.charts.wellness.destroy();
     }
 
-    // Mock wellness history (in real app, this would come from backend)
-    const mockData = this.generateMockWellnessHistory(profile?.wellnessScore || 0);
+    const sorted = [...(wellnessHistory || [])].sort((a, b) =>
+      new Date(a.date) - new Date(b.date)
+    );
+    const labels = sorted.map(entry =>
+      new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    );
+    const scores = sorted.map(entry => entry.wellnessScore);
 
     const ctx = canvas.getContext('2d');
     this.charts.wellness = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: mockData.labels,
+        labels,
         datasets: [{
           label: 'Wellness Score',
-          data: mockData.scores,
+          data: scores,
           borderColor: 'rgb(108, 240, 194)',
           backgroundColor: 'rgba(108, 240, 194, 0.1)',
           tension: 0.3,
@@ -258,26 +264,6 @@ export class Charts {
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return weekNo;
-  }
-
-  generateMockWellnessHistory(currentScore) {
-    // Generate last 30 days of data
-    const labels = [];
-    const scores = [];
-    const today = new Date();
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      
-      // Simulate gradual improvement toward current score
-      const variance = Math.random() * 10 - 5;
-      const baseScore = currentScore - (i * 0.5);
-      scores.push(Math.max(0, Math.min(100, baseScore + variance)));
-    }
-
-    return { labels, scores };
   }
 
   destroy() {

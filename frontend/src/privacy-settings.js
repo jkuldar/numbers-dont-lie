@@ -1,5 +1,5 @@
 // Privacy settings and consent component
-import { formatDateTime, getErrorMessage, showLoading, hideLoading } from './utils.js';
+import { formatDateTime, getErrorMessage, showLoading, hideLoading, showToast } from './utils.js';
 
 export class PrivacySettings {
   constructor(container, api) {
@@ -269,29 +269,10 @@ export class PrivacySettings {
   }
 
   showError(message) {
-    // Simple toast implementation
-    this.showToast(message, 'error');
+    showToast(message, 'error');
   }
 
   showSuccess(message) {
-    this.showToast(message, 'success');
-  }
-
-  showToast(message, type) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 100);
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
+    showToast(message, 'success');
   }
 }

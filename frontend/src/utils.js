@@ -75,3 +75,35 @@ export function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
+
+function getToastContainer() {
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+export function showToast(message, type = 'success') {
+  if (!message) return;
+  const container = getToastContainer();
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, 3000);
+}

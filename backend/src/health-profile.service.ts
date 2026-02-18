@@ -146,6 +146,41 @@ export class HealthProfileService {
     });
   }
 
+  /**
+   * Get wellness score history (daily snapshots)
+   */
+  async getWellnessHistory(userId: string, days = 30) {
+    const profile = await this.prisma.healthProfile.findUnique({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException('Health profile not found');
+    }
+
+    const safeDays = Math.max(1, Math.min(Math.trunc(days), 90));
+    const today = new Date();
+    const rangeStart = new Date(today);
+    rangeStart.setDate(today.getDate() - (safeDays - 1));
+    rangeStart.setHours(0, 0, 0, 0);
+
+    const profileStart = new Date(profile.createdAt);
+    profileStart.setHours(0, 0, 0, 0);
+    const effectiveStart = profileStart > rangeStart ? profileStart : rangeStart;
+
+    const history: Array<{ date: string; wellnessScore: number; progressPercent: number | null }> = [];
+    for (let day = new Date(effectiveStart); day <= today; day.setDate(day.getDate() + 1)) {
+      const endOfDay = new Date(day);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const metrics = await this.computeWellnessScoreAt(userId, endOfDay);
+      history.push({
+        date: new Date(day).toISOString(),
+        wellnessScore: metrics.wellnessScore,
+        progressPercent: metrics.progressPercent,
+      });
+    }
+
+    return history;
+  }
+
   async addActivityEntry(
     userId: string,
     data: {

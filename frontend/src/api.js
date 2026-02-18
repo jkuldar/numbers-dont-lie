@@ -108,6 +108,12 @@ export class API {
     return this.request('/health-profile/activity-entries');
   }
 
+  // Wellness history
+  async getWellnessHistory(days = 30) {
+    const safeDays = Number.isFinite(days) ? days : 30;
+    return this.request(`/health-profile/wellness-history?days=${encodeURIComponent(safeDays)}`);
+  }
+
   // AI insights
   async getAIInsights() {
     return this.request('/ai/insights');

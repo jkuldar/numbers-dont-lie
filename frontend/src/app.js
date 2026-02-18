@@ -5,6 +5,7 @@ import { Dashboard } from './dashboard.js';
 import { ProfileForm } from './profile-form.js';
 import { Charts } from './charts.js';
 import { PrivacySettings } from './privacy-settings.js';
+import { showToast } from './utils.js';
 
 class App {
   constructor() {
@@ -366,14 +367,14 @@ class App {
           close();
           this.navigateTo('dashboard');
         } catch (error) {
-          alert('Failed to save weight: ' + error.message);
+          showToast(`Failed to save weight: ${error.message}`, 'error');
         }
       }
     });
   }
 
   showAddActivityModal() {
-    alert('Activity logging modal coming soon!');
+    showToast('Activity logging modal coming soon!', 'success');
   }
 
   attachGlobalListeners() {
