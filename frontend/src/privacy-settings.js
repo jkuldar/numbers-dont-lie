@@ -1,5 +1,5 @@
 // Privacy settings and consent component
-import { formatDateTime, getErrorMessage, showLoading, hideLoading, showToast } from './utils.js';
+import { formatDateTime, getErrorMessage, showLoading, hideLoading, showToast, showConfirm } from './utils.js';
 
 export class PrivacySettings {
   constructor(container, api) {
@@ -196,7 +196,15 @@ export class PrivacySettings {
       ? 'Are you sure you want to grant consent for AI data usage?'
       : 'Are you sure you want to revoke consent? You will no longer receive AI insights.';
 
-    if (!confirm(confirmMsg)) return;
+    const confirmed = await showConfirm({
+      title: grant ? 'Grant AI Consent' : 'Revoke AI Consent',
+      message: confirmMsg,
+      confirmText: grant ? 'Grant' : 'Revoke',
+      cancelText: 'Cancel',
+      type: grant ? 'default' : 'warning'
+    });
+
+    if (!confirmed) return;
 
     showLoading(button);
 

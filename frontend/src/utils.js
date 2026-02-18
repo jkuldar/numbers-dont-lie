@@ -107,3 +107,155 @@ export function showToast(message, type = 'success') {
     }, 300);
   }, 3000);
 }
+
+// Custom modal dialogs
+export function showConfirm(options) {
+  return new Promise((resolve) => {
+    const {
+      title = 'Confirm',
+      message = 'Are you sure?',
+      confirmText = 'OK',
+      cancelText = 'Cancel',
+      type = 'default' // 'default', 'danger', 'warning'
+    } = options;
+
+    // Create modal backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-labelledby', 'modal-title');
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = `modal-dialog modal-${type}`;
+    
+    modal.innerHTML = `
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">${title}</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-message">${message}</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary modal-cancel" type="button">${cancelText}</button>
+        <button class="btn btn-primary modal-confirm ${type === 'danger' ? 'btn-danger' : ''}" type="button">${confirmText}</button>
+      </div>
+    `;
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    // Add entrance animation
+    requestAnimationFrame(() => {
+      backdrop.classList.add('show');
+    });
+
+    // Handle actions
+    const cleanup = (result) => {
+      backdrop.classList.remove('show');
+      setTimeout(() => {
+        if (backdrop.parentNode) {
+          backdrop.parentNode.removeChild(backdrop);
+        }
+      }, 200);
+      resolve(result);
+    };
+
+    modal.querySelector('.modal-cancel').addEventListener('click', () => cleanup(false));
+    modal.querySelector('.modal-confirm').addEventListener('click', () => cleanup(true));
+    
+    // Close on backdrop click
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) cleanup(false);
+    });
+
+    // Close on Escape key
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        cleanup(false);
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // Focus the confirm button
+    setTimeout(() => {
+      modal.querySelector('.modal-confirm').focus();
+    }, 100);
+  });
+}
+
+export function showAlert(options) {
+  return new Promise((resolve) => {
+    const {
+      title = 'Alert',
+      message = '',
+      confirmText = 'OK',
+      type = 'default' // 'default', 'success', 'danger', 'warning'
+    } = options;
+
+    // Create modal backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.setAttribute('role', 'alertdialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-labelledby', 'modal-title');
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = `modal-dialog modal-${type}`;
+    
+    modal.innerHTML = `
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">${title}</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-message">${message}</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary modal-confirm" type="button">${confirmText}</button>
+      </div>
+    `;
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    // Add entrance animation
+    requestAnimationFrame(() => {
+      backdrop.classList.add('show');
+    });
+
+    // Handle actions
+    const cleanup = () => {
+      backdrop.classList.remove('show');
+      setTimeout(() => {
+        if (backdrop.parentNode) {
+          backdrop.parentNode.removeChild(backdrop);
+        }
+      }, 200);
+      resolve();
+    };
+
+    modal.querySelector('.modal-confirm').addEventListener('click', cleanup);
+    
+    // Close on backdrop click
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) cleanup();
+    });
+
+    // Close on Escape key
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        cleanup();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // Focus the confirm button
+    setTimeout(() => {
+      modal.querySelector('.modal-confirm').focus();
+    }, 100);
+  });
+}

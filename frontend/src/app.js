@@ -5,7 +5,7 @@ import { Dashboard } from './dashboard.js';
 import { ProfileForm } from './profile-form.js';
 import { Charts } from './charts.js';
 import { PrivacySettings } from './privacy-settings.js';
-import { showToast } from './utils.js';
+import { showToast, showConfirm } from './utils.js';
 
 class App {
   constructor() {
@@ -63,8 +63,16 @@ class App {
     });
 
     // Logout
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-      if (confirm('Are you sure you want to logout?')) {
+    document.getElementById('logout-btn')?.addEventListener('click', async () => {
+      const confirmed = await showConfirm({
+        title: 'Logout',
+        message: 'Are you sure you want to logout?',
+        confirmText: 'Logout',
+        cancelText: 'Cancel',
+        type: 'warning'
+      });
+      
+      if (confirmed) {
         localStorage.removeItem('ndli_access_token');
         location.reload();
       }
@@ -374,7 +382,103 @@ class App {
   }
 
   showAddActivityModal() {
-    showToast('Activity logging modal coming soon!', 'success');
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Log Activity</h3>
+          <button class="btn-close" id="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <form id="add-activity-form">
+            <label>
+              <span>Type *</span>
+              <input type="text" name="type" placeholder="Running, yoga, cycling" required />
+            </label>
+            <label>
+              <span>Duration (minutes)</span>
+              <input type="number" name="durationMin" min="1" max="1440" step="1" />
+            </label>
+            <label>
+              <span>Intensity</span>
+              <select name="intensity">
+                <option value="">Select</option>
+                <option value="low">Low</option>
+                <option value="moderate">Moderate</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+            <label>
+              <span>Steps</span>
+              <input type="number" name="steps" min="0" max="200000" step="1" />
+            </label>
+            <label>
+              <span>Calories</span>
+              <input type="number" name="calories" min="0" max="10000" step="1" />
+            </label>
+            <label>
+              <span>When</span>
+              <input type="datetime-local" name="loggedAt" />
+            </label>
+            <label>
+              <span>Note</span>
+              <input type="text" name="note" maxlength="120" />
+            </label>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="modal-cancel">Cancel</button>
+          <button class="btn-primary" id="modal-save">Save</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+
+    const close = () => {
+      modal.classList.remove('show');
+      setTimeout(() => document.body.removeChild(modal), 300);
+    };
+
+    modal.querySelector('#close-modal').addEventListener('click', close);
+    modal.querySelector('#modal-cancel').addEventListener('click', close);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) close();
+    });
+
+    modal.querySelector('#modal-save').addEventListener('click', async () => {
+      const form = modal.querySelector('#add-activity-form');
+      const type = form.type.value.trim();
+      const durationMin = form.durationMin.value ? Number(form.durationMin.value) : undefined;
+      const intensity = form.intensity.value || undefined;
+      const steps = form.steps.value ? Number(form.steps.value) : undefined;
+      const calories = form.calories.value ? Number(form.calories.value) : undefined;
+      const loggedAt = form.loggedAt.value ? new Date(form.loggedAt.value).toISOString() : undefined;
+      const note = form.note.value.trim() || undefined;
+
+      if (!type) {
+        showToast('Activity type is required.', 'error');
+        return;
+      }
+
+      try {
+        await this.api.addActivityEntry({
+          type,
+          durationMin,
+          intensity,
+          steps,
+          calories,
+          loggedAt,
+          note,
+        });
+        close();
+        this.navigateTo('dashboard');
+      } catch (error) {
+        showToast(`Failed to save activity: ${error.message}`, 'error');
+      }
+    });
   }
 
   attachGlobalListeners() {
