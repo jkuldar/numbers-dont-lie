@@ -121,6 +121,11 @@ export class API {
     return this.request(`/health-profile/wellness-history?days=${encodeURIComponent(safeDays)}`);
   }
 
+  // Summary (weekly/monthly)
+  async getSummary(period = 'week') {
+    return this.request(`/health-profile/summary?period=${encodeURIComponent(period)}`);
+  }
+
   // AI insights
   async getAIInsights() {
     return this.request('/ai/insights');

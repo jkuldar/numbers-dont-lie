@@ -4,6 +4,7 @@ import { Auth } from './auth.js';
 import { Dashboard } from './dashboard.js';
 import { ProfileForm } from './profile-form.js';
 import { Charts } from './charts.js';
+import { ComparisonView } from './comparison-view.js';
 import { PrivacySettings } from './privacy-settings.js';
 import { showToast, showConfirm } from './utils.js';
 
@@ -33,6 +34,7 @@ class App {
           <button class="nav-link active" data-view="dashboard">Dashboard</button>
           <button class="nav-link" data-view="profile">Profile</button>
           <button class="nav-link" data-view="charts">Charts</button>
+          <button class="nav-link" data-view="comparison">Compare</button>
           <button class="nav-link" data-view="privacy">Privacy</button>
         </div>
         <div class="nav-actions">
@@ -278,6 +280,9 @@ class App {
         case 'charts':
           await this.renderCharts(container);
           break;
+        case 'comparison':
+          await this.renderComparison(container);
+          break;
         case 'privacy':
           await this.renderPrivacy(container);
           break;
@@ -319,6 +324,15 @@ class App {
     const charts = new Charts(chartsEl, this.api);
     await charts.load();
     this.components.charts = charts;
+  }
+
+  async renderComparison(container) {
+    container.innerHTML = '<div id="comparison-container"></div>';
+    const comparisonEl = document.getElementById('comparison-container');
+    
+    const comparison = new ComparisonView(comparisonEl, this.api);
+    await comparison.load();
+    this.components.comparison = comparison;
   }
 
   async renderPrivacy(container) {
