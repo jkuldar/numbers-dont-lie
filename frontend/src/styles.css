@@ -1080,6 +1080,7 @@ button:disabled {
 /* Privacy Settings */
 .privacy-settings {
   max-width: 900px;
+  margin: 0 auto;
 }
 
 .privacy-settings h2 {
