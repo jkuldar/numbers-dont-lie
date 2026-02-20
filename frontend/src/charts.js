@@ -87,8 +87,8 @@ export class Charts {
           {
             label: 'Weight (kg)',
             data: weights,
-            borderColor: 'rgb(108, 240, 194)',
-            backgroundColor: 'rgba(108, 240, 194, 0.1)',
+            borderColor: 'rgb(106, 27, 154)',
+            backgroundColor: 'rgba(106, 27, 154, 0.1)',
             tension: 0.3,
             fill: true,
           },
@@ -152,8 +152,8 @@ export class Charts {
         datasets: [{
           label: 'Activities per week',
           data: counts,
-          backgroundColor: 'rgba(108, 240, 194, 0.6)',
-          borderColor: 'rgb(108, 240, 194)',
+          backgroundColor: 'rgba(106, 27, 154, 0.6)',
+          borderColor: 'rgb(106, 27, 154)',
           borderWidth: 1,
         }],
       },
@@ -208,8 +208,8 @@ export class Charts {
         datasets: [{
           label: 'Wellness Score',
           data: scores,
-          borderColor: 'rgb(108, 240, 194)',
-          backgroundColor: 'rgba(108, 240, 194, 0.1)',
+          borderColor: 'rgb(106, 27, 154)',
+          backgroundColor: 'rgba(106, 27, 154, 0.1)',
           tension: 0.3,
           fill: true,
         }],

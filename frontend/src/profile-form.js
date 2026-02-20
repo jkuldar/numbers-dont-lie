@@ -20,13 +20,10 @@ export class ProfileForm {
 
   render() {
     this.container.innerHTML = `
-      <div class="profile-form">
-        <div class="form-header">
-          <h2>Health Profile</h2>
-          <div class="unit-toggle">
-
-
-        <form id="profile-form">
+      <div class="profile-page">
+        <h2 class="page-title">Health Profile</h2>
+        <div class="profile-form">
+          <form id="profile-form">
           <!-- Demographics -->
           <section class="form-section">
             <h3>Demographics</h3>
@@ -183,6 +180,7 @@ export class ProfileForm {
             <button type="button" class="btn-secondary" id="cancel-profile">Cancel</button>
           </div>
         </form>
+        </div>
       </div>
     `;
   }

@@ -28,7 +28,7 @@ class App {
     nav.innerHTML = `
       <nav class="main-nav">
         <div class="nav-brand">
-          <h1>Numbers Don't Lie</h1>
+          <h1><span class="brand-thin">NUMBERS DON'T</span> <span class="brand-bold">LIE</span></h1>
         </div>
         <button class="burger-menu" id="burger-menu" aria-label="Toggle menu">
           <span></span>
@@ -51,6 +51,31 @@ class App {
         </div>
       </nav>
     `;
+
+    // Handle mobile menu structure
+    const handleMobileMenu = () => {
+      const navLinksContainer = nav.querySelector('.nav-links');
+      const navActions = nav.querySelector('.nav-actions');
+      const isMobile = window.innerWidth <= 1200;
+
+      if (isMobile) {
+        // On mobile, move actions inside nav-links if not already there
+        if (navActions && navActions.parentElement?.classList.contains('main-nav')) {
+          navLinksContainer.appendChild(navActions);
+        }
+      } else {
+        // On desktop, move actions back to main nav if not already there
+        if (navActions && !navActions.parentElement?.classList.contains('main-nav')) {
+          nav.querySelector('.main-nav').appendChild(navActions);
+        }
+      }
+    };
+
+    // Initial setup
+    handleMobileMenu();
+    
+    // Handle resize
+    window.addEventListener('resize', handleMobileMenu);
 
     // Burger menu toggle
     const burgerMenu = document.getElementById('burger-menu');
@@ -82,6 +107,10 @@ class App {
     // Settings button (opens modal for API config)
     document.getElementById('settings-btn')?.addEventListener('click', () => {
       this.showSettingsModal();
+      // Close mobile menu
+      burgerMenu?.classList.remove('active');
+      navLinksContainer?.classList.remove('active');
+      document.body.classList.remove('menu-open');
     });
 
     // Logout
@@ -288,6 +317,16 @@ class App {
     this.currentView = view;
     const container = document.getElementById('app-content');
     container.innerHTML = '<div class="loading-spinner">Loading...</div>';
+
+    // Update active navigation link
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      if (link.dataset.view === view) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
 
     try {
       switch (view) {
