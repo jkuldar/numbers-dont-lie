@@ -48,6 +48,38 @@ body {
   color: var(--primary);
 }
 
+/* Burger menu */
+.burger-menu {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 110;
+}
+
+.burger-menu span {
+  width: 25px;
+  height: 3px;
+  background: var(--text);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.burger-menu.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.burger-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger-menu.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
 .nav-links {
   display: flex;
   gap: 1rem;
@@ -1565,29 +1597,86 @@ button:disabled {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  /* Navigation Mobile */
   .main-nav {
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+
+  .burger-menu {
+    display: flex;
+    order: 2;
+  }
+
+  .nav-brand {
+    order: 1;
+  }
+
+  .nav-brand h1 {
+    font-size: 1.1rem;
   }
 
   .nav-links {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem;
+    gap: 0.5rem;
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    z-index: 99;
+  }
+
+  .nav-links.active {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .nav-link {
     width: 100%;
-    overflow-x: auto;
+    text-align: left;
+    padding: 1rem 1.25rem;
+  }
+
+  .nav-actions {
+    order: 3;
+    gap: 0.5rem;
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
   }
 
   .btn-logout {
-    border-radius: 999px;
-    padding: 0 1rem;
+    width: 40px;
+    padding: 0;
   }
 
   .btn-logout .btn-icon__label {
-    display: inline;
+    display: none;
   }
 
+  /* Prevent body scroll when menu is open */
+  body.menu-open {
+    overflow: hidden;
+  }
+
+  /* Content adjustments */
   #app-content {
-    padding: 2rem;
+    padding: 2rem 1rem;
   }
 
   .stats-grid,
@@ -1639,5 +1728,55 @@ button:disabled {
 
   .modal-dialog .btn {
     width: 100%;
+  }
+
+  /* Comparison View Mobile */
+  .comparison-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .comparison-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .period-selector {
+    width: 100%;
+  }
+
+  .period-btn {
+    flex: 1;
+    padding: 0.65rem 1rem;
+  }
+
+  .metrics-comparison,
+  .period-stats,
+  .ai-recommendations {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-comparison-card,
+  .stat-item {
+    padding: 1rem;
+  }
+
+  /* Dashboard mobile */
+  .dashboard .stat-card {
+    padding: 1.25rem;
+  }
+
+  .insights-section,
+  .comparison-section {
+    padding: 1.5rem;
+  }
+
+  /* Chart adjustments */
+  .chart-card {
+    padding: 1.5rem;
+  }
+
+  .chart-card h3 {
+    font-size: 0.9rem;
   }
 }

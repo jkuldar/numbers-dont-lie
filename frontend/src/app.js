@@ -30,6 +30,11 @@ class App {
         <div class="nav-brand">
           <h1>Numbers Don't Lie</h1>
         </div>
+        <button class="burger-menu" id="burger-menu" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <div class="nav-links">
           <button class="nav-link active" data-view="dashboard">Dashboard</button>
           <button class="nav-link" data-view="profile">Profile</button>
@@ -47,6 +52,16 @@ class App {
       </nav>
     `;
 
+    // Burger menu toggle
+    const burgerMenu = document.getElementById('burger-menu');
+    const navLinksContainer = nav.querySelector('.nav-links');
+    
+    burgerMenu?.addEventListener('click', () => {
+      burgerMenu.classList.toggle('active');
+      navLinksContainer.classList.toggle('active');
+      document.body.classList.toggle('menu-open');
+    });
+
     // Nav click handlers
     const navLinks = nav.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
@@ -56,6 +71,11 @@ class App {
         
         navLinks.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
+        
+        // Close mobile menu on navigation
+        burgerMenu?.classList.remove('active');
+        navLinksContainer?.classList.remove('active');
+        document.body.classList.remove('menu-open');
       });
     });
 
@@ -499,6 +519,37 @@ class App {
     // Handle API errors globally
     window.addEventListener('unhandledrejection', (event) => {
       console.error('Unhandled promise rejection:', event.reason);
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const nav = document.querySelector('.main-nav');
+      const burgerMenu = document.getElementById('burger-menu');
+      const navLinks = document.querySelector('.nav-links');
+      
+      if (nav && burgerMenu && navLinks && 
+          !nav.contains(e.target) && 
+          navLinks.classList.contains('active')) {
+        burgerMenu.classList.remove('active');
+        navLinks.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      }
+    });
+
+    // Close mobile menu on scroll
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      const burgerMenu = document.getElementById('burger-menu');
+      const navLinks = document.querySelector('.nav-links');
+      
+      if (burgerMenu && navLinks && navLinks.classList.contains('active')) {
+        if (Math.abs(window.scrollY - lastScrollY) > 50) {
+          burgerMenu.classList.remove('active');
+          navLinks.classList.remove('active');
+          document.body.classList.remove('menu-open');
+        }
+      }
+      lastScrollY = window.scrollY;
     });
   }
 }
