@@ -209,7 +209,7 @@ export class Auth {
           this.onAuthenticated();
         }, 500);
       } else if (result.message && result.message.includes('verify')) {
-        this.showError('Palun kontrolli oma emaili ja kinnita konto enne sisselogimist.');
+        this.showError('Palun kontrolli oma e-maili ja kinnita konto enne sisselogimist.');
       }
     } catch (error) {
       this.showError(error.message || 'Sisselogimine ebaõnnestus');
@@ -241,7 +241,7 @@ export class Auth {
 
     try {
       await this.api.register(email, password);
-      this.showSuccess('Konto loodud! Kontrolli oma emaili, et konto kinnitada.');
+      this.showSuccess('Konto loodud! Kontrolli oma e-maili, et konto kinnitada.');
       form.reset();
       
       // Show verification notice
