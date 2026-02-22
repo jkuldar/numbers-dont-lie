@@ -321,9 +321,6 @@ body {
   border-radius: 4px;
   transition: width 0.5s ease;
 }
-  border-radius: 999px;
-  transition: width 0.5s ease;
-}
 
 /* Insights */
 .insights-section {
@@ -591,6 +588,7 @@ textarea:focus {
 
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input::-webkit-outer-spin-button,
