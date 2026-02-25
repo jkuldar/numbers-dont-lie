@@ -1,4 +1,4 @@
-h:root {
+:root {
   --bg: #ffffff;
   --panel: #f8f9fa;
   --muted: #6c757d;
@@ -31,8 +31,10 @@ body {
 
 /* Navigation */
 .main-nav {
+  background: #f8f9fa;
   background: var(--panel);
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid #dee2e6;
+  border-bottom-color: var(--border);
   padding: 1.5rem 3rem;
   display: flex;
   align-items: center;
@@ -42,9 +44,8 @@ body {
   left: 0;
   right: 0;
   z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   box-shadow: var(--shadow);
-  max-width: 100vw;
-  overflow-x: hidden;
 }
 
 .nav-brand h1 {
@@ -85,9 +86,11 @@ body {
 .burger-menu span {
   width: 25px;
   height: 3px;
+  background: #212529;
   background: var(--text);
   border-radius: 2px;
   transition: all 0.3s ease;
+  display: block;
 }
 
 .burger-menu.active span:nth-child(1) {
@@ -1679,18 +1682,21 @@ button:disabled {
     left: 0;
     right: 0;
     flex-direction: column;
+    background: #f8f9fa;
     background: var(--panel);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid #dee2e6;
+    border-bottom-color: var(--border);
     padding: 0;
     gap: 0;
-    transform: translateY(-100%);
+    transform: translateY(-110%);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     max-height: calc(100vh - 70px);
     overflow-y: auto;
-    z-index: 99;
+    overflow-x: hidden;
+    z-index: 1001;
   }
 
   .nav-links.active {
