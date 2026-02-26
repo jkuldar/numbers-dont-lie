@@ -7,12 +7,8 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
-    port: process.env.PORT || 5173,
+    port: parseInt(process.env.PORT) || 4173,
     // Allow all hosts in production (Railway, etc.)
-    allowedHosts: [
-      '.railway.app',
-      '.up.railway.app',
-      'localhost',
-    ],
+    allowedHosts: true,
   },
 });
