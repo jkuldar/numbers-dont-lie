@@ -33,6 +33,14 @@ async function bootstrap() {
     allowedOrigins.push(process.env.FRONTEND_URL);
   }
 
+  // Support comma-separated list of additional origins (e.g. Railway production URL)
+  if (process.env.CORS_ORIGINS) {
+    const extra = process.env.CORS_ORIGINS.split(',').map(o => o.trim()).filter(Boolean);
+    allowedOrigins.push(...extra);
+  }
+
+  console.log('Allowed CORS origins:', allowedOrigins);
+
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or Postman)
