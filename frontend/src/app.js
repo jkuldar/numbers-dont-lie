@@ -249,11 +249,17 @@ class App {
   }
 
   showAuthScreen() {
+    // Hide nav while user is not logged in
+    const nav = document.getElementById('app-nav');
+    if (nav) nav.style.display = 'none';
+
     const container = document.getElementById('app-content');
     container.innerHTML = '<div id="auth-container"></div>';
     
     const authContainer = document.getElementById('auth-container');
     const auth = new Auth(authContainer, this.api, () => {
+      // Show nav again after successful login
+      if (nav) nav.style.display = '';
       this.renderNav();
       this.navigateTo('dashboard');
     });
@@ -314,6 +320,12 @@ class App {
   }
 
   async navigateTo(view) {
+    // Guard: redirect to auth if not logged in
+    if (!this.api.getToken()) {
+      this.showAuthScreen();
+      return;
+    }
+
     this.currentView = view;
     const container = document.getElementById('app-content');
     container.innerHTML = '<div class="loading-spinner">Loading...</div>';
