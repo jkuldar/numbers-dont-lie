@@ -77,6 +77,18 @@ export class AuthController {
   }
 
   // Password Reset
+  @Post('resend-verification')
+  async resendVerification(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new BadRequestException('Email required');
+    }
+    try {
+      return await this.authService.resendVerification(body.email);
+    } catch (error) {
+      throw new BadRequestException((error as Error).message);
+    }
+  }
+
   @Post('forgot-password')
   async forgotPassword(@Body() body: { email: string }) {
     if (!body.email) {

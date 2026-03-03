@@ -182,6 +182,26 @@ export class API {
     return data;
   }
 
+  async resendVerification(email) {
+    const response = await fetch(`${this.baseURL}/auth/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to resend verification email';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
   async verifyEmail(code) {
     const response = await fetch(`${this.baseURL}/auth/verify-email?code=${code}`, {
       method: 'POST',

@@ -121,6 +121,23 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Don't reveal whether the email exists
+    if (!user) return { message: 'If that email is registered, a new verification link has been sent.' };
+
+    if (user.emailVerified) {
+      throw new Error('This email is already verified. You can sign in.');
+    }
+
+    const verificationCode = randomBytes(32).toString('hex');
+    await this.prisma.user.update({ where: { id: user.id }, data: { verificationCode } });
+    await this.sendVerificationEmail(email, verificationCode);
+
+    return { message: 'If that email is registered, a new verification link has been sent.' };
+  }
+
   async verifyEmail(verificationCode: string) {
     const user = await this.prisma.user.findUnique({
       where: { verificationCode },

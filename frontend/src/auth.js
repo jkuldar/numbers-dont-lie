@@ -251,10 +251,17 @@ export class Auth {
           this.onAuthenticated();
         }, 500);
       } else if (result.message && result.message.includes('verify')) {
-        this.showError('Please check your email and verify your account before signing in.');
+        this.showUnverifiedError(email);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
       }
     } catch (error) {
-      this.showError(error.message || 'Sign in failed');
+      const msg = (error.data && error.data.message) || error.message || '';
+      if (msg.toLowerCase().includes('not verified') || msg.toLowerCase().includes('email not verified')) {
+        this.showUnverifiedError(email);
+      } else {
+        this.showError(msg || 'Sign in failed');
+      }
       submitBtn.disabled = false;
       submitBtn.textContent = 'Sign in';
     }
@@ -325,6 +332,44 @@ export class Auth {
       this.currentMode = 'login';
       this.render();
     });
+  }
+
+  showUnverifiedError(email) {
+    const errorEl = this.container.querySelector('#auth-error');
+    if (!errorEl) return;
+
+    errorEl.innerHTML = `
+      <span>Email not verified.</span>
+      <button id="resend-verification-btn" style="
+        margin-left: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-size: inherit;
+        font-weight: 600;
+        padding: 0;
+        text-decoration: underline;
+      ">Resend verification email</button>
+    `;
+    errorEl.style.display = 'block';
+
+    const resendBtn = errorEl.querySelector('#resend-verification-btn');
+    if (resendBtn) {
+      resendBtn.addEventListener('click', async () => {
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Sending...';
+        try {
+          await this.api.resendVerification(email);
+          errorEl.style.display = 'none';
+          this.showSuccess('Verification email sent! Check your inbox.');
+        } catch (err) {
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend verification email';
+          this.showError(err.message || 'Failed to resend. Please try again.');
+        }
+      });
+    }
   }
 
   showError(message) {
