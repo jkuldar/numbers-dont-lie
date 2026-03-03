@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
+  // Nodemailer SMTP transport (used only when RESEND_API_KEY is NOT set)
   private mailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'localhost',
     port: parseInt(process.env.SMTP_PORT || '587'),
@@ -16,6 +17,21 @@ export class AuthService {
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
       : undefined,
   });
+
+  /** Resolve the frontend base URL at runtime so verification links work on Railway */
+  private get frontendUrl(): string {
+    const configured = process.env.FRONTEND_URL || process.env.FRONT_URL;
+    if (configured) return configured.replace(/\/$/, '');
+    // Fallback: Railway injects RAILWAY_PUBLIC_DOMAIN for each service but we need the
+    // *frontend* service URL.  Best effort: derive from the backend public domain by
+    // replacing "backend" with "frontend" in the hostname.
+    if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+      const backendHost = process.env.RAILWAY_PUBLIC_DOMAIN;
+      const frontendHost = backendHost.replace('backend', 'frontend');
+      return `https://${frontendHost}`;
+    }
+    return 'http://localhost:5173';
+  }
 
   constructor(
     private prisma: PrismaService,
@@ -203,9 +219,9 @@ export class AuthService {
   }
 
   private async sendVerificationEmail(email: string, code: string) {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?code=${code}`;
+    const verificationUrl = `${this.frontendUrl}/verify?code=${code}`;
 
-    // In development, log the verification code
+    // Always log in dev so you can test without real email
     if (process.env.NODE_ENV !== 'production') {
       console.log('╔════════════════════════════════════════════════════════════╗');
       console.log('║  EMAIL VERIFICATION CODE (Development Only)               ║');
@@ -217,38 +233,93 @@ export class AuthService {
       console.log('╚════════════════════════════════════════════════════════════╝');
     }
 
-    try {
-      await this.mailTransporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@wellness.local',
-        to: email,
-        subject: 'Verify your email',
-        html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
-      });
-    } catch (error) {
-      console.error('Email send failed:', error);
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('⚠️  SMTP not configured - use the verification code above');
-      }
-    }
+    await this.sendEmail({
+      to: email,
+      subject: 'Verify your Numbers Don\'t Lie account',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:2rem">
+          <h2 style="color:#6a1b9a">Numbers Don't Lie</h2>
+          <p>Thanks for signing up! Click the button below to verify your email address.</p>
+          <a href="${verificationUrl}"
+             style="display:inline-block;margin:1.5rem 0;padding:0.75rem 1.5rem;
+                    background:#6a1b9a;color:#fff;border-radius:6px;
+                    text-decoration:none;font-weight:600">
+            Verify my email
+          </a>
+          <p style="color:#666;font-size:0.9rem">Or copy this link into your browser:</p>
+          <p style="word-break:break-all;font-size:0.85rem;color:#444">${verificationUrl}</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:2rem 0">
+          <p style="color:#999;font-size:0.8rem">If you didn't create this account you can safely ignore this email.</p>
+        </div>
+      `,
+    });
   }
 
   private async sendPasswordResetEmail(email: string, resetToken: string) {
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    const resetUrl = `${this.frontendUrl}/reset-password?token=${resetToken}`;
 
-    try {
-      await this.mailTransporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@wellness.local',
-        to: email,
-        subject: 'Password Reset Request',
-        html: `
-          <p>You requested a password reset.</p>
-          <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
-          <p>This link expires in 1 hour.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        `,
+    await this.sendEmail({
+      to: email,
+      subject: 'Reset your Numbers Don\'t Lie password',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:2rem">
+          <h2 style="color:#6a1b9a">Numbers Don't Lie</h2>
+          <p>You requested a password reset. Click the button below to choose a new password.</p>
+          <a href="${resetUrl}"
+             style="display:inline-block;margin:1.5rem 0;padding:0.75rem 1.5rem;
+                    background:#6a1b9a;color:#fff;border-radius:6px;
+                    text-decoration:none;font-weight:600">
+            Reset my password
+          </a>
+          <p style="color:#666;font-size:0.9rem">This link expires in 1 hour.</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:2rem 0">
+          <p style="color:#999;font-size:0.8rem">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
+  }
+
+  /**
+   * Unified email sender.
+   * - Uses Resend REST API when RESEND_API_KEY is set (recommended for production).
+   * - Falls back to nodemailer/SMTP when SMTP_HOST is configured.
+   * - Logs a warning and skips silently when neither is available.
+   */
+  private async sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+    const from = process.env.EMAIL_FROM || process.env.SMTP_FROM || 'Numbers Don\'t Lie <onboarding@resend.dev>';
+
+    if (process.env.RESEND_API_KEY) {
+      // ── Resend REST API ──────────────────────────────────────────────────────
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ from, to, subject, html }),
       });
-    } catch (error) {
-      console.error('Email send failed:', error);
+
+      if (!res.ok) {
+        const body = await res.text();
+        console.error('Resend API error:', res.status, body);
+      } else {
+        console.log(`✉️  Email sent via Resend to ${to}`);
+      }
+      return;
     }
+
+    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost') {
+      // ── Nodemailer SMTP fallback ─────────────────────────────────────────────
+      try {
+        await this.mailTransporter.sendMail({ from, to, subject, html });
+        console.log(`✉️  Email sent via SMTP to ${to}`);
+      } catch (error) {
+        console.error('SMTP send failed:', error);
+      }
+      return;
+    }
+
+    // No transport configured
+    console.warn(`⚠️  No email transport configured (set RESEND_API_KEY or SMTP_HOST). Email to ${to} was NOT sent.`);
   }
 }
