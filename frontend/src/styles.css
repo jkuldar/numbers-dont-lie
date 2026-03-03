@@ -1285,8 +1285,93 @@ button:disabled {
 }
 
 /* Authentication Styles */
-.auth-container {
+.auth-page {
+  display: flex;
   min-height: 100vh;
+}
+
+/* ---------- Left branding panel (desktop only) ---------- */
+.auth-branding {
+  display: none; /* hidden on mobile */
+  background: linear-gradient(160deg, var(--primary) 0%, #3a0070 100%);
+  color: #fff;
+  flex: 1;
+  padding: 3rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-branding-inner {
+  max-width: 420px;
+  margin: auto;
+}
+
+.auth-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-brand-icon {
+  font-size: 2.5rem;
+}
+
+.auth-brand-logo h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.auth-brand-tagline {
+  font-size: 1.1rem;
+  opacity: 0.85;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.auth-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.auth-features li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.auth-features li strong {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.auth-features li span {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+/* ---------- Right form panel ---------- */
+.auth-container {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1305,16 +1390,17 @@ button:disabled {
   box-shadow: var(--shadow);
 }
 
+/* On mobile show the app name inside the card; on desktop it's in the branding panel */
 .auth-header {
   text-align: center;
   margin-bottom: 2.5rem;
 }
 
-.auth-header h1 {
-  font-size: 2rem;
+.auth-header h2 {
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .auth-subtitle {
@@ -1322,6 +1408,23 @@ button:disabled {
   font-size: 0.95rem;
   line-height: 1.6;
 }
+
+/* Desktop: two-column layout */
+@media (min-width: 900px) {
+  .auth-branding {
+    display: flex;
+  }
+
+  /* Card header is redundant on desktop (branding panel already shows the title) */
+  .auth-header h2 {
+    display: none;
+  }
+
+  .auth-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
 
 .auth-tabs {
   display: flex;

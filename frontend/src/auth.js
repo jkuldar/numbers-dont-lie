@@ -11,39 +11,81 @@ export class Auth {
 
   render() {
     this.container.innerHTML = `
-      <div class="auth-container">
-        <div class="auth-card">
-          <div class="auth-header">
-            <h1>Numbers Don't Lie</h1>
-            <p class="auth-subtitle">Your privacy-focused wellness platform</p>
-          </div>
-
-          <div class="auth-tabs">
-            <button class="auth-tab ${this.currentMode === 'login' ? 'active' : ''}" data-mode="login">
-              Sisene
-            </button>
-            <button class="auth-tab ${this.currentMode === 'register' ? 'active' : ''}" data-mode="register">
-              Registreeru
-            </button>
-          </div>
-
-          <div class="auth-body">
-            ${this.currentMode === 'login' ? this.renderLoginForm() : this.renderRegisterForm()}
-          </div>
-
-          <div class="auth-footer">
-            <div class="auth-divider">
-              <span>või</span>
+      <div class="auth-page">
+        <div class="auth-branding">
+          <div class="auth-branding-inner">
+            <div class="auth-brand-logo">
+              <span class="auth-brand-icon">📊</span>
+              <h1>Numbers Don't Lie</h1>
             </div>
-            <div class="oauth-buttons">
-              <button class="btn-oauth btn-google" id="google-login">
-                <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M17.6 9.2l-.1-1.8H9v3.4h4.8C13.6 12 13 13 12 13.6v2.2h3a8.8 8.8 0 0 0 2.6-6.6z" fill="#4285F4" fill-rule="nonzero"/><path d="M9 18c2.4 0 4.5-.8 6-2.2l-3-2.2a5.4 5.4 0 0 1-8-2.9H1V13a9 9 0 0 0 8 5z" fill="#34A853" fill-rule="nonzero"/><path d="M4 10.7a5.4 5.4 0 0 1 0-3.4V5H1a9 9 0 0 0 0 8l3-2.3z" fill="#FBBC05" fill-rule="nonzero"/><path d="M9 3.6c1.3 0 2.5.4 3.4 1.3L15 2.3A9 9 0 0 0 1 5l3 2.4a5.4 5.4 0 0 1 5-3.7z" fill="#EA4335" fill-rule="nonzero"/></g></svg>
-                Google
+            <p class="auth-brand-tagline">Sinu privaatsusele keskenduv terviseplatvorm</p>
+            <ul class="auth-features">
+              <li>
+                <span class="feature-icon">🔒</span>
+                <div>
+                  <strong>Privaatsus esikohal</strong>
+                  <span>Sinu andmed on ainult sinu omad</span>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">📈</span>
+                <div>
+                  <strong>Tervise ülevaade</strong>
+                  <span>Jälgi kehakaalu, und, aktiivsust ja enamat</span>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">🤖</span>
+                <div>
+                  <strong>AI nõuanded</strong>
+                  <span>Personaalsed soovitused sinu andmete põhjal</span>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">📊</span>
+                <div>
+                  <strong>Täpsed graafikud</strong>
+                  <span>Visualiseeri oma tervisearengut</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h2>Numbers Don't Lie</h2>
+              <p class="auth-subtitle">Tere tulemast tagasi</p>
+            </div>
+
+            <div class="auth-tabs">
+              <button class="auth-tab ${this.currentMode === 'login' ? 'active' : ''}" data-mode="login">
+                Sisene
               </button>
-              <button class="btn-oauth btn-github" id="github-login">
-                <svg width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M9 0C4 0 0 4 0 9c0 4 2.6 7.4 6.2 8.6.5.1.7-.2.7-.5v-1.7c-2.5.5-3-.6-3.2-1.2-.1-.3-.6-1.2-1-1.4-.4-.2-.9-.7 0-.7.8 0 1.4.7 1.6 1 .9 1.5 2.4 1.1 3 .8.1-.6.4-1.1.7-1.3-2.3-.3-4.7-1.1-4.7-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.8 0 0 .9-.3 2.8 1a9.5 9.5 0 0 1 5 0c2-1.3 2.8-1 2.8-1 .5 1.5.2 2.5.1 2.8.7.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A9 9 0 0 0 9 0z"/></svg>
-                GitHub
+              <button class="auth-tab ${this.currentMode === 'register' ? 'active' : ''}" data-mode="register">
+                Registreeru
               </button>
+            </div>
+
+            <div class="auth-body">
+              ${this.currentMode === 'login' ? this.renderLoginForm() : this.renderRegisterForm()}
+            </div>
+
+            <div class="auth-footer">
+              <div class="auth-divider">
+                <span>või</span>
+              </div>
+              <div class="oauth-buttons">
+                <button class="btn-oauth btn-google" id="google-login">
+                  <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M17.6 9.2l-.1-1.8H9v3.4h4.8C13.6 12 13 13 12 13.6v2.2h3a8.8 8.8 0 0 0 2.6-6.6z" fill="#4285F4" fill-rule="nonzero"/><path d="M9 18c2.4 0 4.5-.8 6-2.2l-3-2.2a5.4 5.4 0 0 1-8-2.9H1V13a9 9 0 0 0 8 5z" fill="#34A853" fill-rule="nonzero"/><path d="M4 10.7a5.4 5.4 0 0 1 0-3.4V5H1a9 9 0 0 0 0 8l3-2.3z" fill="#FBBC05" fill-rule="nonzero"/><path d="M9 3.6c1.3 0 2.5.4 3.4 1.3L15 2.3A9 9 0 0 0 1 5l3 2.4a5.4 5.4 0 0 1 5-3.7z" fill="#EA4335" fill-rule="nonzero"/></g></svg>
+                  Google
+                </button>
+                <button class="btn-oauth btn-github" id="github-login">
+                  <svg width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M9 0C4 0 0 4 0 9c0 4 2.6 7.4 6.2 8.6.5.1.7-.2.7-.5v-1.7c-2.5.5-3-.6-3.2-1.2-.1-.3-.6-1.2-1-1.4-.4-.2-.9-.7 0-.7.8 0 1.4.7 1.6 1 .9 1.5 2.4 1.1 3 .8.1-.6.4-1.1.7-1.3-2.3-.3-4.7-1.1-4.7-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.8 0 0 .9-.3 2.8 1a9.5 9.5 0 0 1 5 0c2-1.3 2.8-1 2.8-1 .5 1.5.2 2.5.1 2.8.7.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A9 9 0 0 0 9 0z"/></svg>
+                  GitHub
+                </button>
+              </div>
             </div>
           </div>
         </div>

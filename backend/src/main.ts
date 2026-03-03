@@ -45,7 +45,14 @@ async function bootstrap() {
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
-      
+
+      // On Railway, automatically allow all *.up.railway.app origins so the
+      // frontend service can always reach the backend regardless of whether
+      // FRONTEND_URL / CORS_ORIGINS env vars have been explicitly configured.
+      if (process.env.RAILWAY_ENVIRONMENT && origin.endsWith('.up.railway.app')) {
+        return callback(null, true);
+      }
+
       if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
         callback(null, true);
       } else {
