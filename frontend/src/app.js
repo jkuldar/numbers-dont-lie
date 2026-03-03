@@ -176,7 +176,7 @@ class App {
           </div>
           <div class="auth-body">
             <div class="verification-status">
-              <div class="loading-spinner">Kinnitame sinu e-maili...</div>
+              <div class="loading-spinner">Verifying your email...</div>
             </div>
           </div>
         </div>
@@ -191,13 +191,13 @@ class App {
         <div class="auth-container">
           <div class="auth-card">
             <div class="auth-header">
-              <h1>E-mail kinnitatud!</h1>
+              <h1>Email Verification</h1>
             </div>
             <div class="auth-body">
               <div class="verification-notice">
                 <div class="verification-icon">✅</div>
                 <h3>Suurepärane!</h3>
-                <p>Sinu e-mail on edukalt kinnitatud.</p>
+                <p>Your email has been verified successfully.</p>
                 <p>Nüüd saad sisse logida.</p>
                 <button class="btn-primary" id="goto-login">
                   Logi sisse
@@ -222,15 +222,15 @@ class App {
         <div class="auth-container">
           <div class="auth-card">
             <div class="auth-header">
-              <h1>Kinnitamine ebaõnnestus</h1>
+              <h1>Verification Failed</h1>
             </div>
             <div class="auth-body">
               <div class="verification-notice">
                 <div class="verification-icon">❌</div>
-                <h3>Midagi läks valesti</h3>
-                <p>${error.message || 'Kinnituskood on vigane või aegunud.'}</p>
+                <h3>Something went wrong</h3>
+                <p>${error.message || 'The verification code is invalid or has expired.'}</p>
                 <button class="btn-primary" id="goto-login">
-                  Tagasi sisselogimisele
+                  Back to sign in
                 </button>
               </div>
             </div>

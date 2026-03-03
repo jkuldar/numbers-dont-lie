@@ -18,34 +18,34 @@ export class Auth {
               <span class="auth-brand-icon">📊</span>
               <h1>Numbers Don't Lie</h1>
             </div>
-            <p class="auth-brand-tagline">Sinu privaatsusele keskenduv terviseplatvorm</p>
+            <p class="auth-brand-tagline">Your privacy-focused wellness platform</p>
             <ul class="auth-features">
               <li>
                 <span class="feature-icon">🔒</span>
                 <div>
-                  <strong>Privaatsus esikohal</strong>
-                  <span>Sinu andmed on ainult sinu omad</span>
+                  <strong>Privacy first</strong>
+                  <span>Your data belongs to you alone</span>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">📈</span>
                 <div>
-                  <strong>Tervise ülevaade</strong>
-                  <span>Jälgi kehakaalu, und, aktiivsust ja enamat</span>
+                  <strong>Health overview</strong>
+                  <span>Track weight, sleep, activity and more</span>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">🤖</span>
                 <div>
-                  <strong>AI nõuanded</strong>
-                  <span>Personaalsed soovitused sinu andmete põhjal</span>
+                  <strong>AI insights</strong>
+                  <span>Personalised recommendations based on your data</span>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">📊</span>
                 <div>
-                  <strong>Täpsed graafikud</strong>
-                  <span>Visualiseeri oma tervisearengut</span>
+                  <strong>Detailed charts</strong>
+                  <span>Visualise your health progress over time</span>
                 </div>
               </li>
             </ul>
@@ -56,15 +56,15 @@ export class Auth {
           <div class="auth-card">
             <div class="auth-header">
               <h2>Numbers Don't Lie</h2>
-              <p class="auth-subtitle">Tere tulemast tagasi</p>
+              <p class="auth-subtitle">Welcome back</p>
             </div>
 
             <div class="auth-tabs">
               <button class="auth-tab ${this.currentMode === 'login' ? 'active' : ''}" data-mode="login">
-                Sisene
+                Sign in
               </button>
               <button class="auth-tab ${this.currentMode === 'register' ? 'active' : ''}" data-mode="register">
-                Registreeru
+                Register
               </button>
             </div>
 
@@ -74,7 +74,7 @@ export class Auth {
 
             <div class="auth-footer">
               <div class="auth-divider">
-                <span>või</span>
+                <span>or</span>
               </div>
               <div class="oauth-buttons">
                 <button class="btn-oauth btn-google" id="google-login">
@@ -103,14 +103,14 @@ export class Auth {
           <input 
             type="email" 
             name="email" 
-            placeholder="sinu@email.ee"
+            placeholder="you@example.com"
             required 
             autocomplete="email"
           />
         </div>
         
         <div class="form-group">
-          <label>Parool</label>
+          <label>Password</label>
           <input 
             type="password" 
             name="password" 
@@ -124,11 +124,11 @@ export class Auth {
         <div id="auth-success" class="auth-success" style="display: none;"></div>
 
         <button type="submit" class="btn-primary btn-block">
-          Sisene
+          Sign in
         </button>
 
         <div class="auth-links">
-          <a href="#" id="forgot-password">Unustasid parooli?</a>
+          <a href="#" id="forgot-password">Forgot your password?</a>
         </div>
       </form>
     `;
@@ -142,27 +142,27 @@ export class Auth {
           <input 
             type="email" 
             name="email" 
-            placeholder="sinu@email.ee"
+            placeholder="you@example.com"
             required 
             autocomplete="email"
           />
         </div>
         
         <div class="form-group">
-          <label>Parool</label>
+          <label>Password</label>
           <input 
             type="password" 
             name="password" 
-            placeholder="Vähemalt 8 tähemärki"
+            placeholder="At least 8 characters"
             required 
             autocomplete="new-password"
             minlength="8"
           />
-          <small class="form-hint">Vähemalt 8 tähemärki</small>
+          <small class="form-hint">At least 8 characters</small>
         </div>
         
         <div class="form-group">
-          <label>Korda parooli</label>
+          <label>Confirm password</label>
           <input 
             type="password" 
             name="confirmPassword" 
@@ -176,7 +176,7 @@ export class Auth {
         <div id="auth-success" class="auth-success" style="display: none;"></div>
 
         <button type="submit" class="btn-primary btn-block">
-          Loo konto
+          Create account
         </button>
       </form>
     `;
@@ -240,23 +240,23 @@ export class Auth {
 
     this.hideMessages();
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Sisselogimine...';
+    submitBtn.textContent = 'Signing in...';
 
     try {
       const result = await this.api.login(email, password);
       
       if (result.accessToken) {
-        this.showSuccess('Sisselogimine õnnestus!');
+        this.showSuccess('Signed in successfully!');
         setTimeout(() => {
           this.onAuthenticated();
         }, 500);
       } else if (result.message && result.message.includes('verify')) {
-        this.showError('Palun kontrolli oma e-maili ja kinnita konto enne sisselogimist.');
+        this.showError('Please check your email and verify your account before signing in.');
       }
     } catch (error) {
-      this.showError(error.message || 'Sisselogimine ebaõnnestus');
+      this.showError(error.message || 'Sign in failed');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sisene';
+      submitBtn.textContent = 'Sign in';
     }
   }
 
@@ -269,21 +269,21 @@ export class Auth {
     this.hideMessages();
 
     if (password !== confirmPassword) {
-      this.showError('Paroolid ei ühti');
+      this.showError('Passwords do not match');
       return;
     }
 
     if (password.length < 8) {
-      this.showError('Parool peab olema vähemalt 8 tähemärki');
+      this.showError('Password must be at least 8 characters');
       return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Konto loomine...';
+    submitBtn.textContent = 'Creating account...';
 
     try {
       await this.api.register(email, password);
-      this.showSuccess('Konto loodud! Kontrolli oma e-maili, et konto kinnitada.');
+      this.showSuccess('Account created! Check your email to verify your account.');
       form.reset();
       
       // Show verification notice
@@ -292,9 +292,9 @@ export class Auth {
       }, 2000);
       
     } catch (error) {
-      this.showError(error.message || 'Registreerimine ebaõnnestus');
+      this.showError(error.message || 'Registration failed');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Loo konto';
+      submitBtn.textContent = 'Create account';
     }
   }
 
@@ -308,15 +308,15 @@ export class Auth {
     this.container.querySelector('.auth-body').innerHTML = `
       <div class="verification-notice">
         <div class="verification-icon">📧</div>
-        <h3>Kontrolli oma emaili</h3>
-        <p>Saatsime kinnituslingi aadressile:</p>
+        <h3>Check your email</h3>
+        <p>We sent a verification link to:</p>
         <strong>${email}</strong>
         <p class="verification-help">
-          Kliki lingil emailis, et oma konto aktiveerida. 
-          Seejärel saad sisse logida.
+          Click the link in the email to activate your account.
+          You can then sign in.
         </p>
         <button class="btn-secondary" id="back-to-login">
-          Tagasi sisselogimisele
+          Back to sign in
         </button>
       </div>
     `;
