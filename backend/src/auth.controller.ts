@@ -125,8 +125,8 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
-    // Redirect to frontend with tokens
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
   }
 
   // GitHub OAuth
@@ -140,8 +140,8 @@ export class AuthController {
   @UseGuards(GithubAuthGuard)
   async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
-    // Redirect to frontend with tokens
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
   }
 
   // Two-Factor Authentication
