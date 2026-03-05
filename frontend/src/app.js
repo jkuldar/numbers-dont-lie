@@ -18,6 +18,7 @@ class App {
   }
 
   init() {
+    this.initDarkMode();
     this.renderNav();
     this.checkAuth();
     this.attachGlobalListeners();
@@ -43,6 +44,7 @@ class App {
           <button class="nav-link" data-view="privacy">Privacy</button>
         </div>
         <div class="nav-actions">
+          <button class="btn-icon" id="darkmode-btn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
           <button class="btn-icon" id="settings-btn" title="Settings">⚙️</button>
           <button class="btn-icon btn-logout" id="logout-btn" title="Logi välja" aria-label="Logi välja">
             <span class="btn-icon__glyph">⏻</span>
@@ -102,6 +104,18 @@ class App {
         navLinksContainer?.classList.remove('active');
         document.body.classList.remove('menu-open');
       });
+    });
+
+    // Dark mode toggle button
+    const darkModeBtn = document.getElementById('darkmode-btn');
+    this.updateDarkModeBtn(darkModeBtn);
+    darkModeBtn?.addEventListener('click', () => {
+      this.toggleDarkMode();
+      this.updateDarkModeBtn(darkModeBtn);
+      // Close mobile menu
+      burgerMenu?.classList.remove('active');
+      navLinksContainer?.classList.remove('active');
+      document.body.classList.remove('menu-open');
     });
 
     // Settings button (opens modal for API config)
@@ -265,6 +279,31 @@ class App {
     });
     
     auth.render();
+  }
+
+  initDarkMode() {
+    const saved = localStorage.getItem('ndli_theme');
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }
+
+  toggleDarkMode() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('ndli_theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('ndli_theme', 'dark');
+    }
+  }
+
+  updateDarkModeBtn(btn) {
+    if (!btn) return;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
   }
 
   showSettingsModal() {

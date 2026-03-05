@@ -10,12 +10,54 @@
   --radius: 4px;
   --border: #dee2e6;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --input-bg: rgba(0, 0, 0, 0.02);
+  --subtle-bg: rgba(0, 0, 0, 0.02);
+  --bar-track: rgba(0, 0, 0, 0.05);
+  --btn-secondary-bg: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --muted: #8b949e;
+  --text: #e6edf3;
+  --primary: #b06cd4;
+  --primary-strong: #9d4dc4;
+  --danger: #f85149;
+  --warning: #d29922;
+  --border: #30363d;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --subtle-bg: rgba(255, 255, 255, 0.03);
+  --bar-track: rgba(255, 255, 255, 0.08);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.07);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html {
+  transition: color-scheme 0.3s ease;
+}
+
+body,
+.main-nav,
+.stat-card,
+.chart-card,
+.insights-section,
+.profile-form,
+.auth-card,
+.comparison-section,
+.action-btn,
+.modal-content,
+.toast,
+input,
+select,
+textarea {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body {
@@ -189,7 +231,7 @@ body {
 }
 
 .skeleton-card {
-  background: linear-gradient(90deg, var(--panel) 25%, rgba(0, 0, 0, 0.05) 50%, var(--panel) 75%);
+  background: linear-gradient(90deg, var(--panel) 25%, var(--bar-track) 50%, var(--panel) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   height: 200px;
@@ -311,7 +353,7 @@ body {
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bar-track);
   border-radius: 4px;
   overflow: hidden;
   margin-top: 1rem;
@@ -363,7 +405,7 @@ body {
 }
 
 .insight-card {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--subtle-bg);
   border: 1px solid var(--border);
   border-left: 3px solid var(--primary);
   border-radius: 4px;
@@ -508,7 +550,7 @@ body {
 .unit-toggle {
   display: flex;
   gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--subtle-bg);
   padding: 0.25rem;
   border-radius: 4px;
   border: 1px solid var(--border);
@@ -574,7 +616,7 @@ textarea {
   padding: 1rem;
   border-radius: 4px;
   border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--input-bg);
   color: var(--text);
   outline: none;
   transition: all 0.2s ease;
@@ -633,7 +675,7 @@ small {
 }
 
 .checkbox-label:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--subtle-bg);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -681,7 +723,7 @@ small {
 }
 
 .btn-secondary {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--btn-secondary-bg);
   border: 1px solid var(--border);
   color: var(--text);
 }
@@ -837,7 +879,7 @@ button:disabled {
 }
 
 .metric-comparison-card {
-  background: rgba(106, 27, 154, 0.03);
+  background: var(--subtle-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 1.5rem;
