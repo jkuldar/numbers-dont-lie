@@ -6,7 +6,7 @@ export class Auth {
     this.container = container;
     this.api = api;
     this.onAuthenticated = onAuthenticated;
-    this.currentMode = 'login'; // 'login' or 'register' or 'verify'
+    this.currentMode = 'login'; // 'login' | 'register' | 'forgot-password'
   }
 
   render() {
@@ -69,7 +69,13 @@ export class Auth {
             </div>
 
             <div class="auth-body">
-              ${this.currentMode === 'login' ? this.renderLoginForm() : this.renderRegisterForm()}
+              ${
+                this.currentMode === 'login'
+                  ? this.renderLoginForm()
+                  : this.currentMode === 'forgot-password'
+                  ? this.renderForgotPasswordForm()
+                  : this.renderRegisterForm()
+              }
             </div>
 
             <div class="auth-footer">
@@ -93,6 +99,37 @@ export class Auth {
     `;
 
     this.attachEventListeners();
+  }
+
+  renderForgotPasswordForm() {
+    return `
+      <form id="forgot-password-form" class="auth-form">
+        <div class="auth-back">
+          <a href="#" id="back-to-login-link">&larr; Back to sign in</a>
+        </div>
+        <h3 style="margin-bottom:0.5rem">Reset your password</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div id="auth-error" class="auth-error" style="display: none;"></div>
+        <div id="auth-success" class="auth-success" style="display: none;"></div>
+
+        <button type="submit" class="btn-primary btn-block">
+          Send reset link
+        </button>
+      </form>
+    `;
   }
 
   renderLoginForm() {
@@ -221,13 +258,56 @@ export class Auth {
       githubBtn.addEventListener('click', () => this.handleOAuth('github'));
     }
 
-    // Forgot password
+    // Forgot password link (inside the login form)
     const forgotPassword = this.container.querySelector('#forgot-password');
     if (forgotPassword) {
       forgotPassword.addEventListener('click', (e) => {
         e.preventDefault();
-        showToast('Password reset functionality coming soon! Use API endpoint /auth/forgot-password', 'error');
+        this.currentMode = 'forgot-password';
+        this.render();
       });
+    }
+
+    // Forgot password form submission
+    const forgotForm = this.container.querySelector('#forgot-password-form');
+    if (forgotForm) {
+      const backLink = this.container.querySelector('#back-to-login-link');
+      backLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.currentMode = 'login';
+        this.render();
+      });
+
+      forgotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await this.handleForgotPassword(e.target);
+      });
+    }
+  }
+
+  async handleForgotPassword(form) {
+    const email = form.email.value.trim();
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    this.hideMessages();
+
+    if (!email) {
+      this.showError('Please enter your email address');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    try {
+      await this.api.forgotPassword(email);
+      this.showSuccess('If that email is registered, a reset link has been sent. Check your inbox.');
+      form.reset();
+    } catch (error) {
+      this.showError(error.message || 'Failed to send reset email');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send reset link';
     }
   }
 
@@ -305,10 +385,30 @@ export class Auth {
     }
   }
 
-  handleOAuth(provider) {
-    // Redirect to OAuth provider
+  async handleOAuth(provider) {
     const oauthUrl = `${this.api.baseURL}/auth/${provider}`;
-    window.location.href = oauthUrl;
+    try {
+      // Quick pre-check: see if the server will redirect us or return an error
+      const response = await fetch(oauthUrl, {
+        redirect: 'manual',
+        credentials: 'include',
+      });
+      // opaqueredirect (type) or status 0 means the server issued a redirect → go there
+      if (response.type === 'opaqueredirect' || response.status === 0) {
+        window.location.href = oauthUrl;
+        return;
+      }
+      // Any other response (e.g. 501) is an error we can read
+      let message = `${provider} sign-in is not available`;
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch {}
+      showToast(message, 'error');
+    } catch {
+      // fetch itself failed (network error, CORS) → just try the navigation
+      window.location.href = oauthUrl;
+    }
   }
 
   showVerificationNotice(email) {

@@ -1553,6 +1553,27 @@ button:disabled {
   text-decoration: underline;
 }
 
+.auth-back {
+  margin-bottom: 1.25rem;
+}
+
+.auth-back a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.auth-back a:hover {
+  color: var(--primary);
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
 .auth-footer {
   margin-top: 2rem;
 }

@@ -6,10 +6,15 @@ import { PrismaService } from './prisma.service';
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(private prisma: PrismaService) {
+    const callbackURL =
+      process.env.GITHUB_CALLBACK_URL ||
+      (process.env.RAILWAY_PUBLIC_DOMAIN
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/github/callback`
+        : 'http://localhost:3000/auth/github/callback');
     super({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.GITHUB_CALLBACK_URL || 'https://localhost:3000/auth/github/callback',
+      callbackURL,
       scope: ['user:email'],
     });
   }

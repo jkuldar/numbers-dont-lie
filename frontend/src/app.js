@@ -172,6 +172,14 @@ class App {
       this.navigateTo('dashboard');
       return;
     }
+
+    // Check for password reset callback
+    const resetToken = urlParams.get('token');
+    if (resetToken && window.location.pathname.includes('reset-password')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      this.handlePasswordReset(resetToken);
+      return;
+    }
     
     if (!token) {
       this.showAuthScreen();
@@ -260,6 +268,103 @@ class App {
         this.showAuthScreen();
       });
     }
+  }
+
+  handlePasswordReset(resetToken) {
+    // Hide nav during reset flow
+    const nav = document.getElementById('app-nav');
+    if (nav) nav.style.display = 'none';
+
+    const container = document.getElementById('app-content');
+    container.innerHTML = `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h2>Numbers Don't Lie</h2>
+              <p class="auth-subtitle">Create a new password</p>
+            </div>
+            <div class="auth-body">
+              <form id="reset-password-form" class="auth-form">
+                <div class="form-group">
+                  <label>New password</label>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    placeholder="At least 8 characters"
+                    required
+                    autocomplete="new-password"
+                    minlength="8"
+                  />
+                  <small class="form-hint">At least 8 characters</small>
+                </div>
+                <div class="form-group">
+                  <label>Confirm new password</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    required
+                    autocomplete="new-password"
+                  />
+                </div>
+                <div id="reset-error" class="auth-error" style="display:none;"></div>
+                <div id="reset-success" class="auth-success" style="display:none;"></div>
+                <button type="submit" class="btn-primary btn-block">Set new password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const form = container.querySelector('#reset-password-form');
+    const errorEl = container.querySelector('#reset-error');
+    const successEl = container.querySelector('#reset-success');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = form.newPassword.value;
+      const confirmPassword = form.confirmPassword.value;
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      errorEl.style.display = 'none';
+      successEl.style.display = 'none';
+
+      if (newPassword !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        errorEl.textContent = 'Password must be at least 8 characters';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      try {
+        await this.api.resetPassword(resetToken, newPassword);
+        successEl.textContent = 'Password changed! You can now sign in with your new password.';
+        successEl.style.display = 'block';
+        form.reset();
+        form.style.display = 'none';
+
+        setTimeout(() => {
+          if (nav) nav.style.display = '';
+          this.renderNav();
+          this.showAuthScreen();
+        }, 2500);
+      } catch (error) {
+        errorEl.textContent = error.message || 'Password reset failed. The link may have expired.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Set new password';
+      }
+    });
   }
 
   showAuthScreen() {

@@ -221,4 +221,44 @@ export class API {
 
     return response.json();
   }
+
+  async forgotPassword(email) {
+    const response = await fetch(`${this.baseURL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to send reset email';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
+  async resetPassword(token, newPassword) {
+    const response = await fetch(`${this.baseURL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Password reset failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
 }

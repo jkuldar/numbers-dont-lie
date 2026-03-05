@@ -2,7 +2,8 @@ import { Controller, Post, Body, Query, BadRequestException, Get, UseGuards, Req
 import { AuthService } from './auth.service';
 import { TwoFAService } from './twofa.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { AuthGuard } from '@nestjs/passport';
+import { GoogleAuthGuard } from './google-auth.guard';
+import { GithubAuthGuard } from './github-auth.guard';
 import { Request, Response } from 'express';
 
 type AuthenticatedRequest = Request & { user: { id: string; email: string } };
@@ -115,13 +116,13 @@ export class AuthController {
 
   // Google OAuth
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuth() {
     // Initiates Google OAuth flow
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
     // Redirect to frontend with tokens
@@ -130,13 +131,13 @@ export class AuthController {
 
   // GitHub OAuth
   @Get('github')
-  @UseGuards(AuthGuard('github'))
+  @UseGuards(GithubAuthGuard)
   async githubAuth() {
     // Initiates GitHub OAuth flow
   }
 
   @Get('github/callback')
-  @UseGuards(AuthGuard('github'))
+  @UseGuards(GithubAuthGuard)
   async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
     // Redirect to frontend with tokens

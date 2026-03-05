@@ -6,10 +6,15 @@ import { PrismaService } from './prisma.service';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private prisma: PrismaService) {
+    const callbackURL =
+      process.env.GOOGLE_CALLBACK_URL ||
+      (process.env.RAILWAY_PUBLIC_DOMAIN
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/google/callback`
+        : 'http://localhost:3000/auth/google/callback');
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'https://localhost:3000/auth/google/callback',
+      callbackURL,
       scope: ['email', 'profile'],
     });
   }
