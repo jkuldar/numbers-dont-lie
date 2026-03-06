@@ -149,6 +149,7 @@ model PrivacySettings {
   includeWeight         Boolean  @default(true)
   includeActivity       Boolean  @default(true)
   includeDietary        Boolean  @default(true)
+  includeGoals          Boolean  @default(true)
   includeMedical        Boolean  @default(false)
   
   createdAt             DateTime @default(now())

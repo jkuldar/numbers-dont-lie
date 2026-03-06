@@ -27,6 +27,7 @@ export class PrivacySettingsService {
           includeWeight: true,
           includeActivity: true,
           includeDietary: true,
+          includeGoals: true,
           includeMedical: false,
         },
       });
@@ -46,6 +47,7 @@ export class PrivacySettingsService {
       includeWeight: data.includeWeight ?? true,
       includeActivity: data.includeActivity ?? true,
       includeDietary: data.includeDietary ?? true,
+      includeGoals: data.includeGoals ?? true,
       includeMedical: data.includeMedical ?? false,
     };
 
@@ -68,9 +70,18 @@ export class PrivacySettingsService {
    * Update specific privacy settings
    */
   async updateSettings(userId: string, data: any) {
+    const allowedFields: Record<string, boolean | undefined> = {};
+    const fieldNames = [
+      'shareWithAI', 'shareAnonymousData', 'allowDataExport',
+      'includeWeight', 'includeActivity', 'includeDietary', 'includeGoals', 'includeMedical',
+    ];
+    for (const field of fieldNames) {
+      if (field in data) allowedFields[field] = data[field];
+    }
+
     const settings = await this.prisma.privacySettings.update({
       where: { userId },
-      data,
+      data: allowedFields,
     });
 
     return {
