@@ -343,4 +343,8 @@ export class AuthService {
     // No transport configured
     console.warn(`⚠️  No email transport configured (set RESEND_API_KEY or SMTP_HOST). Email to ${to} was NOT sent.`);
   }
+
+  async deleteAccount(userId: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id: userId } });
+  }
 }

@@ -154,8 +154,8 @@ export class PrivacySettings {
           <h3>Danger Zone</h3>
           <p>Permanently delete your account and all associated data.</p>
           
-          <button class="btn-danger" id="delete-account-btn" disabled>
-            Delete Account (Coming Soon)
+          <button class="btn-danger" id="delete-account-btn">
+            🗑️ Delete Account
           </button>
         </section>
       </div>
@@ -180,6 +180,11 @@ export class PrivacySettings {
 
     if (exportBtn) {
       exportBtn.addEventListener('click', () => this.handleExport(exportBtn));
+    }
+
+    const deleteBtn = this.container.querySelector('#delete-account-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => this.handleDeleteAccount(deleteBtn));
     }
 
     if (privacyForm) {
@@ -270,6 +275,36 @@ export class PrivacySettings {
       URL.revokeObjectURL(url);
 
       this.showSuccess('Data exported successfully');
+    } catch (error) {
+      hideLoading(button);
+      this.showError(getErrorMessage(error));
+    }
+  }
+
+  async handleDeleteAccount(button) {
+    const confirmed = await showConfirm({
+      title: 'Delete Account',
+      message: 'Are you sure? This will permanently delete your account and ALL your health data. This cannot be undone.',
+      confirmText: 'Delete My Account',
+      cancelText: 'Cancel',
+      type: 'warning',
+    });
+    if (!confirmed) return;
+
+    const secondConfirm = await showConfirm({
+      title: 'Final Confirmation',
+      message: 'This action is irreversible. All your data will be permanently deleted. Continue?',
+      confirmText: 'Yes, Delete Everything',
+      cancelText: 'Keep My Account',
+      type: 'warning',
+    });
+    if (!secondConfirm) return;
+
+    showLoading(button);
+    try {
+      await this.api.deleteAccount();
+      this.api.setToken('');
+      window.location.reload();
     } catch (error) {
       hideLoading(button);
       this.showError(getErrorMessage(error));

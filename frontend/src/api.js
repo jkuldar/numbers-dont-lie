@@ -126,9 +126,58 @@ export class API {
     return this.request(`/health-profile/summary?period=${encodeURIComponent(period)}`);
   }
 
-  // AI insights
+  // AI insights – fetches the latest single insight and parses the free-form
+  // text into individual recommendation objects that the dashboard/comparison
+  // view components expect under the `recommendations` key.
   async getAIInsights() {
-    return this.request('/ai/insights');
+    const data = await this.request('/ai/insight');
+    if (!data.success || !data.insight) return { recommendations: [] };
+    const { response, priority, fromCache, createdAt } = data.insight;
+    return {
+      recommendations: this._parseInsightRecommendations(response, priority, fromCache, createdAt),
+      fromCache,
+      createdAt,
+    };
+  }
+
+  // Parse numbered or paragraph-separated AI response into individual cards.
+  _parseInsightRecommendations(text, priority, fromCache, createdAt) {
+    if (!text) return [];
+    // Try numbered items like "1. ...\n2. ...\n3. ..."
+    const sections = [];
+    const regex = /(?:^|\n)\d+\.\s+([\s\S]*?)(?=\n\d+\.|$)/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const s = match[1].trim();
+      if (s) sections.push(s);
+    }
+    if (sections.length >= 2) {
+      const priorities = ['high', 'medium', 'low'];
+      return sections.map((s, i) => ({
+        text: s,
+        priority: priorities[i] || 'low',
+        fromCache,
+        createdAt,
+      }));
+    }
+    // Fallback: split by double newlines (paragraphs)
+    const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+    if (paragraphs.length >= 2) {
+      const priorities = ['high', 'medium', 'low'];
+      return paragraphs.slice(0, 3).map((p, i) => ({
+        text: p,
+        priority: priorities[i] || priority || 'medium',
+        fromCache,
+        createdAt,
+      }));
+    }
+    // Last resort: whole text as a single card
+    return [{ text, priority: priority || 'medium', fromCache, createdAt }];
+  }
+
+  // Delete the authenticated user's account and all associated data
+  async deleteAccount() {
+    return this.request('/auth/account', { method: 'DELETE' });
   }
 
   // Two-Factor Authentication

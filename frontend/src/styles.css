@@ -2045,3 +2045,213 @@ button:disabled {
     font-size: 0.9rem;
   }
 }
+
+/* ── Expandable insight cards (dashboard) ──────────────────────────────── */
+details.insight-card {
+  cursor: default;
+}
+
+details.insight-card > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+details.insight-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.insight-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insight-preview {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+details.insight-card > summary::after {
+  content: 'Show more ▼';
+  font-size: 0.7rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 0.25rem;
+  align-self: flex-start;
+}
+
+details.insight-card[open] > summary::after {
+  content: 'Show less ▲';
+}
+
+.insight-full-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* ── Milestone text below progress bar ────────────────────────────────── */
+.milestone-text {
+  font-size: 0.75rem;
+  color: var(--warning);
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ── Streak badges ─────────────────────────────────────────────────────── */
+.streaks-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.streak-badge {
+  padding: 0.4rem 1rem;
+  background: rgba(106, 27, 154, 0.12);
+  border: 1px solid rgba(106, 27, 154, 0.3);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Expandable recommendation cards (comparison view) ─────────────────── */
+details.recommendation-card {
+  cursor: default;
+}
+
+details.recommendation-card > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details.recommendation-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.recommendation-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recommendation-preview {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+details.recommendation-card > summary::after {
+  content: 'Show more ▼';
+  font-size: 0.7rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+details.recommendation-card[open] > summary::after {
+  content: 'Show less ▲';
+}
+
+.recommendation-full-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* ── Projected completion date ─────────────────────────────────────────── */
+.projected-date {
+  font-size: 1rem;
+}
+
+/* ── Weekly Activity Heatmap ───────────────────────────────────────────── */
+.activity-heatmap {
+  padding: 0.5rem 0;
+}
+
+.heatmap-inner {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.heatmap-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+
+.heatmap-day-labels div {
+  width: 14px;
+  height: 14px;
+  font-size: 0.6rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.week-label-spacer {
+  height: 14px;
+}
+
+.heatmap-weeks {
+  display: flex;
+  gap: 4px;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.week-label {
+  font-size: 0.6rem;
+  color: var(--muted);
+  height: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40px;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.heatmap-cell.level-0 { background: rgba(255, 255, 255, 0.06); }
+.heatmap-cell.level-1 { background: rgba(106, 27, 154, 0.3); }
+.heatmap-cell.level-2 { background: rgba(106, 27, 154, 0.65); }
+.heatmap-cell.level-3 { background: rgba(106, 27, 154, 1); }
+.heatmap-cell.future  { opacity: 0.2; pointer-events: none; }
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0.75rem;
+}
+
+.legend-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 0 4px;
+}

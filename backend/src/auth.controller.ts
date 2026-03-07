@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Query, BadRequestException, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Post, Body, Query, BadRequestException, Get, Delete, UseGuards, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TwoFAService } from './twofa.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -183,6 +183,17 @@ export class AuthController {
     }
     try {
       return await this.twoFAService.disableTwoFactor(req.user.userId, body.token);
+    } catch (error) {
+      throw new BadRequestException((error as Error).message);
+    }
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(@Req() req: AuthenticatedRequest) {
+    try {
+      await this.authService.deleteAccount(req.user.userId);
+      return { success: true, message: 'Account and all associated data deleted successfully.' };
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }

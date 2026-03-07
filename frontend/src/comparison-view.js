@@ -266,6 +266,19 @@ export class ComparisonView {
             <div class="stat-detail">Current streak</div>
           </div>
         </div>
+
+        ${(() => {
+          const projected = this.calculateProjectedCompletion();
+          return projected ? `
+            <div class="stat-item">
+              <div class="stat-icon">📅</div>
+              <div class="stat-content">
+                <div class="stat-label">Projected Goal Date</div>
+                <div class="stat-value projected-date">${projected}</div>
+                <div class="stat-detail">Based on current rate</div>
+              </div>
+            </div>` : '';
+        })()}
       </div>
     `;
   }
@@ -434,18 +447,37 @@ export class ComparisonView {
       low: '🟢'
     }[priorityClass] || '🟡';
 
+    const text = recommendation.text || recommendation.recommendation || '';
+    const preview = text.length > 160 ? text.substring(0, 160).trimEnd() + '…' : text;
+    const hasMore = text.length > 160;
+
     return `
-      <div class="recommendation-card priority-${priorityClass}">
-        <div class="recommendation-header">
-          <span class="priority-indicator">${priorityIcon}</span>
-          <span class="priority-label">${priorityLabel}</span>
-        </div>
-        <div class="recommendation-content">
-          ${recommendation.text || recommendation.recommendation}
-        </div>
+      <details class="recommendation-card priority-${priorityClass}">
+        <summary class="recommendation-summary">
+          <div class="recommendation-header">
+            <span class="priority-indicator">${priorityIcon}</span>
+            <span class="priority-label">${priorityLabel}</span>
+          </div>
+          <div class="recommendation-preview">${preview}</div>
+        </summary>
+        ${hasMore ? `<div class="recommendation-full-content">${text}</div>` : ''}
         ${recommendation.fromCache ? '<div class="cache-indicator">📦 Cached</div>' : ''}
-      </div>
+      </details>
     `;
+  }
+
+  calculateProjectedCompletion() {
+    if (!this.profile?.currentWeightKg || !this.profile?.targetWeightKg) return null;
+    const weeklyChange = this.weekSummary?.weightChange;
+    if (!weeklyChange || weeklyChange === 0) return null;
+    const diff = this.profile.targetWeightKg - this.profile.currentWeightKg;
+    // Only project if change is in the right direction
+    if ((diff > 0 && weeklyChange <= 0) || (diff < 0 && weeklyChange >= 0)) return null;
+    const weeksNeeded = Math.abs(diff / weeklyChange);
+    if (weeksNeeded > 520) return null; // >10 years, skip
+    const date = new Date();
+    date.setDate(date.getDate() + Math.round(weeksNeeded * 7));
+    return date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   calculateTargetBMI() {

@@ -56,6 +56,7 @@ export class Dashboard {
     const bmiClass = this.profile.bmiClass || getBMIClass(bmi);
     const wellnessScore = this.profile.wellnessScore || 0;
     const progressPercent = this.profile.progressPercent || 0;
+    const nextMilestonePercent = this.profile.nextMilestonePercent || null;
 
     this.container.innerHTML = `
       <div class="dashboard">
@@ -81,6 +82,7 @@ export class Dashboard {
             <div class="stat-value">${progressPercent.toFixed(0)}%</div>
             ${this.renderProgressBar(progressPercent)}
             <div class="stat-detail">${this.getProgressText()}</div>
+            ${nextMilestonePercent !== null && nextMilestonePercent > progressPercent ? `<div class="milestone-text">🎯 Next milestone: ${nextMilestonePercent.toFixed(0)}%</div>` : ''}
           </div>
 
           <div class="stat-card">
@@ -92,6 +94,9 @@ export class Dashboard {
             <div class="stat-detail">${this.getWeightDifferenceText()} remaining</div>
           </div>
         </div>
+
+        <!-- Streaks -->
+        ${this.renderStreaks()}
 
         <!-- AI Insights -->
         ${this.renderInsights()}
@@ -161,14 +166,29 @@ export class Dashboard {
       low: 'Low Priority'
     }[priorityClass] || 'Medium Priority';
 
+    const text = recommendation.text || recommendation.recommendation || '';
+    const preview = text.length > 160 ? text.substring(0, 160).trimEnd() + '…' : text;
+    const hasMore = text.length > 160;
+
     return `
-      <div class="insight-card priority-${priorityClass}">
-        <div class="insight-header">
+      <details class="insight-card priority-${priorityClass}">
+        <summary class="insight-summary">
           <span class="priority-badge">${priorityLabel}</span>
-        </div>
-        <div class="insight-content">
-          ${recommendation.text || recommendation.recommendation}
-        </div>
+          <span class="insight-preview">${preview}</span>
+        </summary>
+        ${hasMore ? `<div class="insight-full-content">${text}</div>` : ''}
+      </details>
+    `;
+  }
+
+  renderStreaks() {
+    const activityStreak = this.profile.activityStreakDays || 0;
+    const habitStreak = this.profile.habitStreakDays || 0;
+    if (!activityStreak && !habitStreak) return '';
+    return `
+      <div class="streaks-row">
+        ${activityStreak > 0 ? `<div class="streak-badge">🔥 ${activityStreak}-day activity streak</div>` : ''}
+        ${habitStreak > 0 ? `<div class="streak-badge">⭐ ${habitStreak}-day habit streak</div>` : ''}
       </div>
     `;
   }

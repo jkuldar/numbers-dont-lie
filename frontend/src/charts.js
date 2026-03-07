@@ -37,8 +37,8 @@ export class Charts {
           </div>
 
           <div class="chart-card">
-            <h3>Activity Trends</h3>
-            <canvas id="activity-chart"></canvas>
+            <h3>Weekly Activity Heatmap</h3>
+            <div id="activity-heatmap"></div>
           </div>
 
           <div class="chart-card">
@@ -51,7 +51,7 @@ export class Charts {
 
     // Render charts
     this.renderWeightChart(weightHistory, profile);
-    this.renderActivityChart(activityEntries);
+    this.renderActivityHeatmap(activityEntries);
     this.renderWellnessChart(wellnessHistory);
   }
 
@@ -129,6 +129,68 @@ export class Charts {
         },
       },
     });
+  }
+
+  renderActivityHeatmap(activityEntries) {
+    const container = document.getElementById('activity-heatmap');
+    if (!container) return;
+
+    // Build date → count map
+    const activityMap = {};
+    (activityEntries || []).forEach(entry => {
+      const d = new Date(entry.loggedAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      activityMap[key] = (activityMap[key] || 0) + 1;
+    });
+
+    const today = new Date();
+    const WEEKS = 12;
+    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    // Start on Monday (WEEKS-1) weeks ago
+    const startDate = new Date(today);
+    const dow = (startDate.getDay() + 6) % 7; // Mon=0
+    startDate.setDate(startDate.getDate() - dow - (WEEKS - 1) * 7);
+
+    const weeksHTML = [];
+    for (let w = 0; w < WEEKS; w++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() + w * 7);
+      const weekLabel = weekStart.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+
+      const cells = [];
+      for (let d = 0; d < 7; d++) {
+        const cellDate = new Date(weekStart);
+        cellDate.setDate(cellDate.getDate() + d);
+        const key = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+        const count = activityMap[key] || 0;
+        const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3;
+        const isFuture = cellDate > today;
+        const label = cellDate.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+        cells.push(`<div class="heatmap-cell level-${level}${isFuture ? ' future' : ''}" title="${label}: ${count} activit${count === 1 ? 'y' : 'ies'}"></div>`);
+      }
+      weeksHTML.push(`<div class="heatmap-week"><div class="week-label">${weekLabel}</div>${cells.join('')}</div>`);
+    }
+
+    container.innerHTML = `
+      <div class="activity-heatmap">
+        <div class="heatmap-inner">
+          <div class="heatmap-day-labels">
+            <div class="week-label-spacer"></div>
+            ${dayNames.map(n => `<div>${n}</div>`).join('')}
+          </div>
+          <div class="heatmap-weeks">${weeksHTML.join('')}</div>
+        </div>
+        <div class="heatmap-legend">
+          <span class="legend-label">Less</span>
+          <div class="heatmap-cell level-0"></div>
+          <div class="heatmap-cell level-1"></div>
+          <div class="heatmap-cell level-2"></div>
+          <div class="heatmap-cell level-3"></div>
+          <span class="legend-label">More</span>
+        </div>
+      </div>
+    `;
   }
 
   renderActivityChart(activityEntries) {

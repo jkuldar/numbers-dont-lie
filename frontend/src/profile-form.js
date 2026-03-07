@@ -246,16 +246,16 @@ export class ProfileForm {
 
           <!-- Medical Information -->
           <section class="form-section">
-            <h3>Medical Information (Optional, Encrypted)</h3>
+            <h3>Medical Information (Optional)</h3>
             <label>
               <span>Medical Conditions (comma-separated)</span>
               <input type="text" name="medicalConditions" placeholder="e.g., diabetes, hypertension" />
-              <small>This information is encrypted at rest</small>
+              <small>Stored securely, not shared with AI by default</small>
             </label>
             <label>
               <span>Medications (comma-separated)</span>
               <input type="text" name="medications" placeholder="e.g., metformin, lisinopril" />
-              <small>This information is encrypted at rest</small>
+              <small>Stored securely, not shared with AI by default</small>
             </label>
           </section>
 
