@@ -75,7 +75,7 @@ export class AIService {
     private readonly logger = new Logger(AIService.name);
     private readonly CACHE_DURATION_HOURS = 24;
     private readonly MAX_CONTEXT_LENGTH = 3000;
-    private readonly AI_MODEL = 'gpt-3.5-turbo';
+    private readonly AI_MODEL = 'gpt-4.1-mini';
 
     constructor(private prisma: PrismaService) {}
 
