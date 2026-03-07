@@ -14,27 +14,29 @@ export class AIController {
   @Get('insight')
   async getInsight(@Req() req: any) {
     const userId = req.user.userId;
-    const insight = await this.aiService.getInsight(userId);
+    const result = await this.aiService.getInsight(userId);
 
-    if (!insight) {
+    if (!result.insight) {
       return {
         success: false,
-        message: 'Unable to generate insight. Please ensure your health profile is complete.',
+        reason: result.reason,
+        message: result.message,
       };
     }
 
     return {
       success: true,
+      reason: result.reason,
       insight: {
-        id: insight.id,
-        response: insight.response,
-        priority: insight.priority,
-        fromCache: insight.fromCache,
-        createdAt: insight.createdAt,
+        id: result.insight.id,
+        response: result.insight.response,
+        priority: result.insight.priority,
+        fromCache: result.insight.fromCache,
+        createdAt: result.insight.createdAt,
         validation: {
-          isValid: insight.isValid,
-          violatesRestrictions: insight.violatesRestrictions,
-          notes: insight.validationNotes,
+          isValid: result.insight.isValid,
+          violatesRestrictions: result.insight.violatesRestrictions,
+          notes: result.insight.validationNotes,
         },
       },
     };

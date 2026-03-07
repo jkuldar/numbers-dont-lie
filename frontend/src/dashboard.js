@@ -132,12 +132,22 @@ export class Dashboard {
   }
 
   renderInsights() {
+    const reason = this.insights?.reason;
     if (!this.insights || !this.insights.recommendations?.length) {
+      const messages = {
+        no_profile: 'Complete your health profile to receive personalized AI insights.',
+        no_consent: 'Grant consent for AI data usage in Privacy Settings to receive personalized insights.',
+        no_api_key: 'AI service is not configured. Add <code>OPENAI_API_KEY</code> to the backend <code>.env</code> file.',
+        unavailable: 'AI service is temporarily unavailable. Your insights will appear here once the service is back.',
+      };
+      const msg = messages[reason] || (reason === 'ok'
+        ? 'No insights yet – try refreshing or add more data to your profile.'
+        : 'Complete your health profile and enable AI insights in Privacy Settings.');
       return `
         <div class="insights-section">
           <h3>AI Insights</h3>
           <div class="insight-placeholder">
-            <p>Complete your profile and consent to AI data usage to receive personalized insights.</p>
+            <p>${msg}</p>
           </div>
         </div>
       `;

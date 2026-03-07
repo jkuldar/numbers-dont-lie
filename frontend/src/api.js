@@ -131,12 +131,15 @@ export class API {
   // view components expect under the `recommendations` key.
   async getAIInsights() {
     const data = await this.request('/ai/insight');
-    if (!data.success || !data.insight) return { recommendations: [] };
+    if (!data.success || !data.insight) {
+      return { recommendations: [], reason: data.reason || 'unavailable', message: data.message || '' };
+    }
     const { response, priority, fromCache, createdAt } = data.insight;
     return {
       recommendations: this._parseInsightRecommendations(response, priority, fromCache, createdAt),
       fromCache,
       createdAt,
+      reason: 'ok',
     };
   }
 

@@ -416,12 +416,18 @@ export class ComparisonView {
   }
 
   renderAIRecommendations() {
+    const reason = this.insights?.reason;
     if (!this.insights || !this.insights.recommendations?.length) {
-      return `
-        <div class="no-data">
-          <p>Enable AI insights in your privacy settings to receive personalized recommendations.</p>
-        </div>
-      `;
+      const messages = {
+        no_profile: 'Complete your health profile to receive personalized AI insights.',
+        no_consent: 'Enable AI insights in Privacy Settings to receive personalized recommendations.',
+        no_api_key: 'AI service is not configured. Add <code>OPENAI_API_KEY</code> to the backend <code>.env</code> file.',
+        unavailable: 'AI service is temporarily unavailable. Please try again later.',
+      };
+      const msg = messages[reason] || (reason === 'ok'
+        ? 'No recommendations yet – try refreshing or add more data to your profile.'
+        : 'Enable AI insights in your privacy settings to receive personalized recommendations.');
+      return `<div class="no-data"><p>${msg}</p></div>`;
     }
 
     const recommendations = this.insights.recommendations;

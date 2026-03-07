@@ -64,6 +64,12 @@ interface AIInsightResult {
     createdAt: Date;
 }
 
+interface AIInsightResponse {
+  insight: AIInsightResult | null;
+  reason: 'ok' | 'no_profile' | 'no_consent' | 'no_api_key' | 'unavailable';
+  message: string;
+}
+
 @Injectable()
 export class AIService {
     private readonly logger = new Logger(AIService.name);
@@ -76,9 +82,9 @@ export class AIService {
     /**
    * Get AI insight with caching and fallback
    */
-    async getInsight(userId: string): Promise<AIInsightResult | null> {
+    async getInsight(userId: string): Promise<AIInsightResponse> {
     try {
-      // Build health context
+      // Build health context (throws specific errors for missing profile/consent)
         const context = await this.buildHealthContext(userId);
         
       // Generate context hash for cache lookup
@@ -89,29 +95,45 @@ export class AIService {
       if (cached) {
         this.logger.log(`Using cached insight for user ${userId}`);
         return {
-          ...cached,
-          fromCache: true,
+          insight: { ...cached, fromCache: true },
+          reason: 'ok',
+          message: 'Cached insight returned',
         };
       }
 
       // Generate new insight
       const insight = await this.generateInsight(userId, context, contextHash);
-      return insight;
+      return { insight, reason: 'ok', message: 'New insight generated' };
 
     } catch (error) {
+      const msg = (error as Error).message || '';
+
+      // Specific known failure reasons
+      if (msg === 'Health profile not found') {
+        return { insight: null, reason: 'no_profile', message: 'Complete your health profile to receive AI insights.' };
+      }
+      if (msg === 'AI data sharing is disabled') {
+        return { insight: null, reason: 'no_consent', message: 'Enable AI insights in Privacy Settings to receive recommendations.' };
+      }
+      if (msg === 'OPENAI_API_KEY not configured') {
+        // Fallback to last cached insight before giving up
+        const fallback = await this.getLastValidInsight(userId);
+        if (fallback) {
+          return { insight: { ...fallback, fromCache: true }, reason: 'ok', message: 'Cached insight returned' };
+        }
+        return { insight: null, reason: 'no_api_key', message: 'AI service is not configured. Set OPENAI_API_KEY in backend environment variables.' };
+      }
+
       this.logger.error(`Failed to get insight for user ${userId}:`, error);
-      
-      // Fallback: get last valid insight
+
+      // Generic fallback: return last cached insight if available
       const fallback = await this.getLastValidInsight(userId);
       if (fallback) {
         this.logger.log(`Using fallback insight for user ${userId}`);
-        return {
-          ...fallback,
-          fromCache: true,
-        };
+        return { insight: { ...fallback, fromCache: true }, reason: 'ok', message: 'Cached insight returned' };
       }
 
-      return null;
+      return { insight: null, reason: 'unavailable', message: 'AI service is temporarily unavailable. Please try again later.' };
     }
   }
 
@@ -128,7 +150,14 @@ export class AIService {
       throw new Error('Health profile not found');
     }
 
-    // Check privacy settings
+    // Check consent and shareWithAI setting
+    const privacyEarly = await this.prisma.privacySettings.findUnique({ where: { userId } });
+    if (privacyEarly && privacyEarly.shareWithAI === false) {
+      throw new Error('AI data sharing is disabled');
+    }
+    if (!profile.consentGiven) {
+      throw new Error('AI data sharing is disabled');
+    }
     const privacy = await this.prisma.privacySettings.findUnique({
       where: { userId },
     });
