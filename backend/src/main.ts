@@ -49,7 +49,11 @@ async function bootstrap() {
       // On Railway, automatically allow all *.up.railway.app origins so the
       // frontend service can always reach the backend regardless of whether
       // FRONTEND_URL / CORS_ORIGINS env vars have been explicitly configured.
-      if (process.env.RAILWAY_ENVIRONMENT && origin.endsWith('.up.railway.app')) {
+      // Railway may inject RAILWAY_ENVIRONMENT, RAILWAY_ENVIRONMENT_NAME, or RAILWAY_PUBLIC_DOMAIN.
+      const isRailway = process.env.RAILWAY_ENVIRONMENT
+        || process.env.RAILWAY_ENVIRONMENT_NAME
+        || process.env.RAILWAY_PUBLIC_DOMAIN;
+      if (isRailway && origin.endsWith('.up.railway.app')) {
         return callback(null, true);
       }
 
