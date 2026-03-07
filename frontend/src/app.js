@@ -45,7 +45,6 @@ class App {
         </div>
         <div class="nav-actions">
           <button class="btn-icon" id="darkmode-btn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
-          <button class="btn-icon" id="settings-btn" title="Settings">⚙️</button>
           <button class="btn-icon btn-logout" id="logout-btn" title="Logi välja" aria-label="Logi välja">
             <span class="btn-icon__glyph">⏻</span>
             <span class="btn-icon__label">Logi välja</span>
@@ -112,15 +111,6 @@ class App {
     darkModeBtn?.addEventListener('click', () => {
       this.toggleDarkMode();
       this.updateDarkModeBtn(darkModeBtn);
-      // Close mobile menu
-      burgerMenu?.classList.remove('active');
-      navLinksContainer?.classList.remove('active');
-      document.body.classList.remove('menu-open');
-    });
-
-    // Settings button (opens modal for API config)
-    document.getElementById('settings-btn')?.addEventListener('click', () => {
-      this.showSettingsModal();
       // Close mobile menu
       burgerMenu?.classList.remove('active');
       navLinksContainer?.classList.remove('active');
@@ -409,39 +399,6 @@ class App {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     btn.textContent = isDark ? '☀️' : '🌙';
     btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-  }
-
-  showSettingsModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Settings</h3>
-          <button class="btn-close" id="close-modal">×</button>
-        </div>
-        <div class="modal-body">
-          <p style="margin:0;color:var(--text-secondary)">Signed in as <strong>${this.api.getToken() ? 'authenticated user' : 'guest'}</strong></p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" id="modal-cancel">Close</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-    setTimeout(() => modal.classList.add('show'), 10);
-
-    const close = () => {
-      modal.classList.remove('show');
-      setTimeout(() => document.body.removeChild(modal), 300);
-    };
-
-    modal.querySelector('#close-modal').addEventListener('click', close);
-    modal.querySelector('#modal-cancel').addEventListener('click', close);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) close();
-    });
   }
 
   async navigateTo(view) {
