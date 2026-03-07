@@ -76,6 +76,14 @@ model HealthProfile {
   
   // Fitness assessment
   fitnessLevel          String?  // 'beginner', 'intermediate', 'advanced'
+  exerciseTypes         String[] // 'cardio', 'strength', 'flexibility', 'sports'
+  sessionDuration       String?  // '15-30min', '30-60min', '60+min'
+  exerciseEnvironment   String?  // 'home', 'gym', 'outdoors', 'mixed'
+  exerciseTimeOfDay     String?  // 'morning', 'afternoon', 'evening', 'no_preference'
+  enduranceMinutes      Int?     // Can run/walk for X minutes
+  pushUpsCount          Int?     // Max push-ups
+  squatsCount           Int?     // Max squats
+  occupationType        String?  // 'desk', 'physical', 'mixed', 'student', 'retired'
   medicalConditions     String[] // List of conditions (encrypted)
   medications           String[] // List of medications (encrypted)
 

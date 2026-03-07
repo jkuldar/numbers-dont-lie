@@ -104,6 +104,17 @@ export class ProfileForm {
                   <option value="advanced">Advanced</option>
                 </select>
               </label>
+              <label>
+                <span>Occupation Type</span>
+                <select name="occupationType">
+                  <option value="">Select...</option>
+                  <option value="desk">Desk / Office work</option>
+                  <option value="physical">Physical / Manual work</option>
+                  <option value="mixed">Mixed</option>
+                  <option value="student">Student</option>
+                  <option value="retired">Retired / Not working</option>
+                </select>
+              </label>
             </div>
           </section>
 
@@ -150,6 +161,87 @@ export class ProfileForm {
                 <input type="number" name="weeklyActivityGoal" min="0" max="21" />
               </label>
             </div>
+          </section>
+
+          <!-- Fitness Assessment -->
+          <section class="form-section">
+            <h3>Fitness Assessment</h3>
+            <div class="form-grid">
+              <label>
+                <span>Preferred Exercise Environment</span>
+                <select name="exerciseEnvironment">
+                  <option value="">Select...</option>
+                  <option value="home">Home</option>
+                  <option value="gym">Gym</option>
+                  <option value="outdoors">Outdoors</option>
+                  <option value="mixed">Mixed</option>
+                </select>
+              </label>
+              <label>
+                <span>Preferred Time of Day</span>
+                <select name="exerciseTimeOfDay">
+                  <option value="">Select...</option>
+                  <option value="morning">Morning</option>
+                  <option value="afternoon">Afternoon</option>
+                  <option value="evening">Evening</option>
+                  <option value="no_preference">No preference</option>
+                </select>
+              </label>
+              <label>
+                <span>Typical Session Duration</span>
+                <select name="sessionDuration">
+                  <option value="">Select...</option>
+                  <option value="15-30min">15 – 30 minutes</option>
+                  <option value="30-60min">30 – 60 minutes</option>
+                  <option value="60+min">60+ minutes</option>
+                </select>
+              </label>
+              <label>
+                <span>Endurance (run/walk without stopping, minutes)</span>
+                <input type="number" name="enduranceMinutes" min="0" max="600" placeholder="e.g., 20" />
+              </label>
+              <label>
+                <span>Max Push-ups (in one set)</span>
+                <input type="number" name="pushUpsCount" min="0" max="500" placeholder="e.g., 15" />
+              </label>
+              <label>
+                <span>Max Squats (in one set)</span>
+                <input type="number" name="squatsCount" min="0" max="500" placeholder="e.g., 30" />
+              </label>
+            </div>
+            <label style="margin-top:0.75rem;display:block;">
+              <span>Exercise Types (select all that apply)</span>
+              <div class="checkbox-group" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:0.5rem;">
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="cardio" />
+                  <span>Cardio</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="strength" />
+                  <span>Strength</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="flexibility" />
+                  <span>Flexibility / Yoga</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="sports" />
+                  <span>Sports</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="hiit" />
+                  <span>HIIT</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="cycling" />
+                  <span>Cycling</span>
+                </label>
+                <label class="checkbox-label checkbox-inline">
+                  <input type="checkbox" name="exerciseTypes" value="swimming" />
+                  <span>Swimming</span>
+                </label>
+              </div>
+            </label>
           </section>
 
           <!-- Medical Information -->
@@ -276,12 +368,17 @@ export class ProfileForm {
       if (key === 'consentGiven') {
         data[key] = formData.get(key) === 'on' || formData.get(key) === 'true';
       }
+      // Multi-value checkboxes (exerciseTypes)
+      else if (key === 'exerciseTypes') {
+        // handled below
+      }
       // Arrays (comma-separated)
       else if (['dietaryPreferences', 'allergies', 'restrictions', 'medicalConditions', 'medications'].includes(key)) {
         data[key] = value.split(',').map(v => v.trim()).filter(v => v);
       }
       // Numbers
-      else if (['age', 'heightCm', 'currentWeightKg', 'targetWeightKg', 'sleepHoursPerDay', 'weeklyActivityGoal'].includes(key)) {
+      else if (['age', 'heightCm', 'currentWeightKg', 'targetWeightKg', 'sleepHoursPerDay', 'weeklyActivityGoal',
+                'enduranceMinutes', 'pushUpsCount', 'squatsCount'].includes(key)) {
         data[key] = parseFloat(value);
       }
       // Strings
@@ -289,6 +386,9 @@ export class ProfileForm {
         data[key] = value;
       }
     }
+
+    // Collect exerciseTypes from checkboxes
+    data.exerciseTypes = formData.getAll('exerciseTypes');
 
     // Convert imperial to metric if needed
     if (!this.useMetric) {
@@ -551,8 +651,15 @@ export class ProfileForm {
       'sleepHoursPerDay',
       'stressLevel',
       'fitnessLevel',
+      'occupationType',
       'primaryGoal',
       'weeklyActivityGoal',
+      'exerciseEnvironment',
+      'exerciseTimeOfDay',
+      'sessionDuration',
+      'enduranceMinutes',
+      'pushUpsCount',
+      'squatsCount',
     ];
 
     fields.forEach(field => {
@@ -585,6 +692,13 @@ export class ProfileForm {
         input.value = resolvedProfile[field].join(', ');
       }
     });
+
+    // Checkbox array: exerciseTypes
+    if (Array.isArray(resolvedProfile.exerciseTypes)) {
+      form.querySelectorAll('[name="exerciseTypes"]').forEach(cb => {
+        cb.checked = resolvedProfile.exerciseTypes.includes(cb.value);
+      });
+    }
   }
 
   showError(message) {
