@@ -325,6 +325,13 @@ export class Auth {
     try {
       const result = await this.api.login(email, password);
       
+      if (result.requires2FA) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
+        this.show2FAPrompt(email, password);
+        return;
+      }
+
       if (result.accessToken) {
         this.showSuccess('Signed in successfully!');
         setTimeout(() => {
@@ -409,6 +416,64 @@ export class Auth {
       // fetch itself failed (network error, CORS) → just try the navigation
       window.location.href = oauthUrl;
     }
+  }
+
+  show2FAPrompt(email, password) {
+    this.container.querySelector('.auth-body').innerHTML = `
+      <div class="twofa-prompt">
+        <div class="verification-icon">🔐</div>
+        <h3>Two-Factor Authentication</h3>
+        <p>Enter the 6-digit code from your authenticator app.</p>
+        <form id="twofa-form" class="auth-form">
+          <div class="form-group">
+            <label>Authentication Code</label>
+            <input
+              type="text"
+              name="token"
+              placeholder="000000"
+              maxlength="6"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              required
+              style="letter-spacing: 0.3em; font-size: 1.3rem; text-align: center;"
+            />
+          </div>
+          <div id="twofa-error" class="auth-error" style="display:none;"></div>
+          <button type="submit" class="btn-primary btn-block">Verify</button>
+          <button type="button" class="btn-secondary btn-block" id="twofa-back" style="margin-top:0.5rem;">Back to sign in</button>
+        </form>
+      </div>
+    `;
+
+    const form = this.container.querySelector('#twofa-form');
+    const errorEl = this.container.querySelector('#twofa-error');
+
+    this.container.querySelector('#twofa-back').addEventListener('click', () => {
+      this.currentMode = 'login';
+      this.render();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = form.token.value.trim();
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      errorEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+
+      try {
+        const result = await this.api.verify2FALogin(email, password, token);
+        if (result.accessToken) {
+          this.onAuthenticated();
+        }
+      } catch (error) {
+        errorEl.textContent = error.message || 'Invalid code. Please try again.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verify';
+      }
+    });
   }
 
   showVerificationNotice(email) {

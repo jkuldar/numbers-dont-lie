@@ -97,6 +97,10 @@ export class AuthService {
     return this.generateTokens(user.id, user.email);
   }
 
+  async getUser(userId: string) {
+    return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+
   async generateTokens(userId: string, email: string) {
     const accessToken = this.jwtService.sign(
       { sub: userId, email },

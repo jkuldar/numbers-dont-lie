@@ -145,6 +145,13 @@ export class AuthController {
   }
 
   // Two-Factor Authentication
+  @Get('2fa/status')
+  @UseGuards(JwtAuthGuard)
+  async get2FAStatus(@Req() req: AuthenticatedRequest) {
+    const user = await this.authService.getUser(req.user.id);
+    return { enabled: user?.twoFactorEnabled ?? false };
+  }
+
   @Post('2fa/generate')
   @UseGuards(JwtAuthGuard)
   async generate2FA(@Req() req: AuthenticatedRequest) {

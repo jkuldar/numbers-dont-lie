@@ -352,11 +352,184 @@ export class ProfileForm {
 
   async loadProfile() {
     try {
-      const profile = await this.api.getHealthProfile();
-      this.fillForm(profile);
+      const [profile, twoFAStatus] = await Promise.all([
+        this.api.getHealthProfile().catch(() => null),
+        this.api.get2FAStatus().catch(() => ({ enabled: false })),
+      ]);
+      if (profile) this.fillForm(profile);
+      this.renderSecuritySection(twoFAStatus.enabled);
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
+  }
+
+  renderSecuritySection(twoFAEnabled) {
+    // Remove any existing security section first
+    const existing = this.container.querySelector('.security-section');
+    if (existing) existing.remove();
+
+    const section = document.createElement('div');
+    section.className = 'security-section profile-form';
+    section.innerHTML = `
+      <section class="form-section">
+        <h3>Security</h3>
+        <div class="twofa-status" style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+          <span>Two-Factor Authentication (2FA)</span>
+          <span class="consent-badge ${twoFAEnabled ? 'active' : 'inactive'}" id="twofa-badge">
+            ${twoFAEnabled ? '✓ Enabled' : '✗ Disabled'}
+          </span>
+        </div>
+        <p style="color:var(--text-secondary);margin-bottom:1rem;font-size:0.9rem;">
+          ${twoFAEnabled
+            ? 'Your account is protected with an authenticator app.'
+            : 'Add an extra layer of security by requiring a code from your authenticator app at login.'}
+        </p>
+        <div id="twofa-action-area">
+          ${twoFAEnabled
+            ? `<button class="btn-danger" id="disable-2fa-btn">Disable 2FA</button>`
+            : `<button class="btn-primary" id="enable-2fa-btn">Set up 2FA</button>`}
+        </div>
+        <div id="twofa-setup-area" style="display:none;margin-top:1.5rem;"></div>
+      </section>
+    `;
+
+    this.container.appendChild(section);
+    this.attach2FAListeners(twoFAEnabled);
+  }
+
+  attach2FAListeners(twoFAEnabled) {
+    if (!twoFAEnabled) {
+      this.container.querySelector('#enable-2fa-btn')?.addEventListener('click', () => this.startEnable2FA());
+    } else {
+      this.container.querySelector('#disable-2fa-btn')?.addEventListener('click', () => this.showDisable2FA());
+    }
+  }
+
+  async startEnable2FA() {
+    const setupArea = this.container.querySelector('#twofa-setup-area');
+    const enableBtn = this.container.querySelector('#enable-2fa-btn');
+    if (enableBtn) { enableBtn.disabled = true; enableBtn.textContent = 'Loading...'; }
+
+    try {
+      const { qrCode, secret } = await this.api.generate2FA();
+
+      setupArea.style.display = 'block';
+      setupArea.innerHTML = `
+        <div>
+          <p style="margin-bottom:0.75rem;font-weight:500;">1. Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy):</p>
+          <img src="${qrCode}" alt="2FA QR Code" style="display:block;margin:0 auto 1rem;border:4px solid white;border-radius:8px;max-width:200px;" />
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">
+            Can't scan? Enter this key manually: <code style="user-select:all;">${secret}</code>
+          </p>
+          <p style="font-weight:500;">2. Enter the 6-digit code from the app to confirm:</p>
+          <div style="display:flex;gap:0.75rem;margin-top:0.75rem;align-items:flex-start;">
+            <input
+              type="text"
+              id="twofa-confirm-token"
+              placeholder="000000"
+              maxlength="6"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              style="letter-spacing:0.3em;font-size:1.2rem;text-align:center;width:130px;padding:0.5rem;"
+            />
+            <button class="btn-primary" id="confirm-enable-2fa-btn">Confirm & Enable</button>
+            <button class="btn-secondary" id="cancel-enable-2fa-btn">Cancel</button>
+          </div>
+          <div id="twofa-enable-error" class="auth-error" style="display:none;margin-top:0.5rem;"></div>
+        </div>
+      `;
+
+      if (enableBtn) { enableBtn.disabled = false; enableBtn.textContent = 'Set up 2FA'; }
+
+      this.container.querySelector('#cancel-enable-2fa-btn').addEventListener('click', () => {
+        setupArea.style.display = 'none';
+        setupArea.innerHTML = '';
+      });
+
+      this.container.querySelector('#confirm-enable-2fa-btn').addEventListener('click', async () => {
+        const token = this.container.querySelector('#twofa-confirm-token').value.trim();
+        const confirmBtn = this.container.querySelector('#confirm-enable-2fa-btn');
+        const errorEl = this.container.querySelector('#twofa-enable-error');
+        errorEl.style.display = 'none';
+
+        if (!token || token.length !== 6) {
+          errorEl.textContent = 'Please enter the 6-digit code.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Enabling...';
+
+        try {
+          await this.api.enable2FA(token);
+          this.showSuccess('2FA enabled successfully!');
+          this.renderSecuritySection(true);
+        } catch (error) {
+          errorEl.textContent = error.message || 'Invalid code. Please try again.';
+          errorEl.style.display = 'block';
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirm & Enable';
+        }
+      });
+    } catch (error) {
+      if (enableBtn) { enableBtn.disabled = false; enableBtn.textContent = 'Set up 2FA'; }
+      this.showError(error.message || 'Failed to start 2FA setup');
+    }
+  }
+
+  showDisable2FA() {
+    const setupArea = this.container.querySelector('#twofa-setup-area');
+    setupArea.style.display = 'block';
+    setupArea.innerHTML = `
+      <p style="margin-bottom:0.75rem;">Enter the 6-digit code from your authenticator app to disable 2FA:</p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <input
+          type="text"
+          id="twofa-disable-token"
+          placeholder="000000"
+          maxlength="6"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          style="letter-spacing:0.3em;font-size:1.2rem;text-align:center;width:130px;padding:0.5rem;"
+        />
+        <button class="btn-danger" id="confirm-disable-2fa-btn">Disable 2FA</button>
+        <button class="btn-secondary" id="cancel-disable-2fa-btn">Cancel</button>
+      </div>
+      <div id="twofa-disable-error" class="auth-error" style="display:none;margin-top:0.5rem;"></div>
+    `;
+
+    this.container.querySelector('#cancel-disable-2fa-btn').addEventListener('click', () => {
+      setupArea.style.display = 'none';
+      setupArea.innerHTML = '';
+    });
+
+    this.container.querySelector('#confirm-disable-2fa-btn').addEventListener('click', async () => {
+      const token = this.container.querySelector('#twofa-disable-token').value.trim();
+      const confirmBtn = this.container.querySelector('#confirm-disable-2fa-btn');
+      const errorEl = this.container.querySelector('#twofa-disable-error');
+      errorEl.style.display = 'none';
+
+      if (!token || token.length !== 6) {
+        errorEl.textContent = 'Please enter the 6-digit code.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Disabling...';
+
+      try {
+        await this.api.disable2FA(token);
+        this.showSuccess('2FA disabled.');
+        this.renderSecuritySection(false);
+      } catch (error) {
+        errorEl.textContent = error.message || 'Invalid code. Please try again.';
+        errorEl.style.display = 'block';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Disable 2FA';
+      }
+    });
   }
 
   fillForm(profile) {

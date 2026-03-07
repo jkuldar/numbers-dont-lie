@@ -131,6 +131,51 @@ export class API {
     return this.request('/ai/insights');
   }
 
+  // Two-Factor Authentication
+  async get2FAStatus() {
+    return this.request('/auth/2fa/status');
+  }
+
+  async generate2FA() {
+    return this.request('/auth/2fa/generate', { method: 'POST' });
+  }
+
+  async enable2FA(token) {
+    return this.request('/auth/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async disable2FA(token) {
+    return this.request('/auth/2fa/disable', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async verify2FALogin(email, password, token) {
+    const response = await fetch(`${this.baseURL}/auth/2fa/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, token }),
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      let errorMessage = '2FA verification failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch {}
+      throw new Error(errorMessage);
+    }
+    const data = await response.json();
+    if (data.accessToken) {
+      this.setToken(data.accessToken);
+    }
+    return data;
+  }
+
   // Authentication endpoints
   async register(email, password) {
     // Use fetch directly since we don't have a token yet
