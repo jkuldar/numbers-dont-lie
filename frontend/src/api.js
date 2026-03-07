@@ -18,7 +18,7 @@ export class API {
     this.baseURL = url;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, _isRetry = false) {
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -36,6 +36,16 @@ export class API {
 
     const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
+    if (response.status === 401 && !_isRetry) {
+      const refreshed = await this.refreshTokens();
+      if (refreshed) {
+        return this.request(endpoint, options, true);
+      }
+      this.clearAuth();
+      window.dispatchEvent(new CustomEvent('auth:expired'));
+      throw Object.assign(new Error('Session expired'), { status: 401 });
+    }
+
     if (!response.ok) {
       const error = new Error(`HTTP ${response.status}`);
       error.status = response.status;
@@ -45,6 +55,43 @@ export class API {
       throw error;
     }
 
+    return response.json();
+  }
+
+  async refreshTokens() {
+    const refreshToken = localStorage.getItem('ndli_refresh_token');
+    if (!refreshToken) return false;
+    try {
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+      if (!response.ok) return false;
+      const data = await response.json();
+      if (data.accessToken) {
+        this.setToken(data.accessToken);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  clearAuth() {
+    this.token = '';
+    localStorage.removeItem('ndli_access_token');
+    localStorage.removeItem('ndli_refresh_token');
+  }
+
+  async exchangeOAuthCode(code) {
+    const response = await fetch(
+      `${this.baseURL}/auth/oauth/exchange?code=${encodeURIComponent(code)}`,
+      { credentials: 'include' },
+    );
+    if (!response.ok) throw new Error('OAuth code exchange failed');
     return response.json();
   }
 

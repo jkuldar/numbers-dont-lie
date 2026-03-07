@@ -5,15 +5,43 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { GithubAuthGuard } from './github-auth.guard';
 import { Request, Response } from 'express';
+import { randomBytes } from 'crypto';
 
 type AuthenticatedRequest = Request & { user: { userId: string; email: string } };
 
 @Controller('auth')
 export class AuthController {
+  private readonly oauthCodes = new Map<string, {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: number;
+  }>();
+
   constructor(
     private authService: AuthService,
     private twoFAService: TwoFAService,
   ) {}
+
+  private createOAuthCode(tokens: { accessToken: string; refreshToken: string }): string {
+    const code = randomBytes(32).toString('hex');
+    this.oauthCodes.set(code, { ...tokens, expiresAt: Date.now() + 60_000 });
+    setTimeout(() => this.oauthCodes.delete(code), 60_000);
+    return code;
+  }
+
+  @Get('oauth/exchange')
+  async exchangeOAuthCode(@Query('code') code: string) {
+    if (!code) {
+      throw new BadRequestException('Code required');
+    }
+    const entry = this.oauthCodes.get(code);
+    if (!entry || entry.expiresAt < Date.now()) {
+      this.oauthCodes.delete(code);
+      throw new BadRequestException('Invalid or expired code');
+    }
+    this.oauthCodes.delete(code);
+    return { accessToken: entry.accessToken, refreshToken: entry.refreshToken };
+  }
 
   @Post('register')
   async register(@Body() body: { email: string; password: string }) {
@@ -125,8 +153,9 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
+    const code = this.createOAuthCode(tokens);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    res.redirect(`${frontendUrl}/?oauthCode=${code}`);
   }
 
   // GitHub OAuth
@@ -140,8 +169,9 @@ export class AuthController {
   @UseGuards(GithubAuthGuard)
   async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginWithOAuth(req.user);
+    const code = this.createOAuthCode(tokens);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    res.redirect(`${frontendUrl}/?oauthCode=${code}`);
   }
 
   // Two-Factor Authentication

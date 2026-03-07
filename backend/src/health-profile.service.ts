@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { encryptArray, decryptArray } from './encryption.util';
 
 type SummaryPeriod = 'week' | 'month';
 
@@ -49,8 +50,8 @@ export class HealthProfileService {
       pushUpsCount: data.pushUpsCount,
       squatsCount: data.squatsCount,
       occupationType: data.occupationType,
-      medicalConditions: data.medicalConditions || [],
-      medications: data.medications || [],
+      medicalConditions: encryptArray(data.medicalConditions || []),
+      medications: encryptArray(data.medications || []),
     };
 
     // Upsert health profile
@@ -378,7 +379,11 @@ export class HealthProfileService {
 
   private decryptProfile(profile: any) {
     if (!profile) return profile;
-    return profile;
+    return {
+      ...profile,
+      medicalConditions: decryptArray(profile.medicalConditions || []),
+      medications: decryptArray(profile.medications || []),
+    };
   }
 
   private async recalculateDerivedMetrics(userId: string) {

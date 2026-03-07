@@ -134,7 +134,7 @@ class App {
     });
   }
 
-  checkAuth() {
+  async checkAuth() {
     const token = this.api.getToken();
     
     // Check for email verification
@@ -147,18 +147,22 @@ class App {
       return;
     }
     
-    // Check for OAuth callback
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
-    
-    if (accessToken) {
-      // OAuth callback - save token and redirect
-      this.api.setToken(accessToken);
-      if (refreshToken) {
-        localStorage.setItem('ndli_refresh_token', refreshToken);
-      }
-      // Clean URL
+    // Check for OAuth callback (one-time code — never raw tokens in URL)
+    const oauthCode = urlParams.get('oauthCode');
+
+    if (oauthCode) {
       window.history.replaceState({}, document.title, window.location.pathname);
+      try {
+        const tokens = await this.api.exchangeOAuthCode(oauthCode);
+        this.api.setToken(tokens.accessToken);
+        if (tokens.refreshToken) {
+          localStorage.setItem('ndli_refresh_token', tokens.refreshToken);
+        }
+      } catch {
+        // Exchange failed – fall through to show auth screen
+        this.showAuthScreen();
+        return;
+      }
       this.navigateTo('dashboard');
       return;
     }
@@ -649,6 +653,11 @@ class App {
   }
 
   attachGlobalListeners() {
+    // Session expired – refresh token rotation failed, show login screen
+    window.addEventListener('auth:expired', () => {
+      this.showAuthScreen();
+    });
+
     // Handle API errors globally
     window.addEventListener('unhandledrejection', (event) => {
       console.error('Unhandled promise rejection:', event.reason);
