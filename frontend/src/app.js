@@ -421,18 +421,10 @@ class App {
           <button class="btn-close" id="close-modal">×</button>
         </div>
         <div class="modal-body">
-          <label>
-            <span>API Base URL</span>
-            <input type="text" id="modal-api-base" value="${this.api.baseURL}" />
-          </label>
-          <label>
-            <span>Access Token</span>
-            <input type="password" id="modal-token" value="${this.api.getToken()}" />
-          </label>
+          <p style="margin:0;color:var(--text-secondary)">Signed in as <strong>${this.api.getToken() ? 'authenticated user' : 'guest'}</strong></p>
         </div>
         <div class="modal-footer">
-          <button class="btn-secondary" id="modal-cancel">Cancel</button>
-          <button class="btn-primary" id="modal-save">Save</button>
+          <button class="btn-secondary" id="modal-cancel">Close</button>
         </div>
       </div>
     `;
@@ -449,17 +441,6 @@ class App {
     modal.querySelector('#modal-cancel').addEventListener('click', close);
     modal.addEventListener('click', (e) => {
       if (e.target === modal) close();
-    });
-
-    modal.querySelector('#modal-save').addEventListener('click', () => {
-      const baseURL = modal.querySelector('#modal-api-base').value.trim();
-      const token = modal.querySelector('#modal-token').value.trim();
-      
-      if (baseURL) this.api.setBaseURL(baseURL);
-      if (token) this.api.setToken(token);
-      
-      close();
-      location.reload();
     });
   }
 
