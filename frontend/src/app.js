@@ -129,6 +129,7 @@ class App {
       
       if (confirmed) {
         localStorage.removeItem('ndli_access_token');
+        localStorage.removeItem('ndli_refresh_token');
         location.reload();
       }
     });
@@ -147,9 +148,10 @@ class App {
       return;
     }
     
-    // Check for OAuth callback
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
+    // Check for OAuth callback (tokens come via hash fragment for security)
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+    const accessToken = hashParams.get('accessToken') || urlParams.get('accessToken');
+    const refreshToken = hashParams.get('refreshToken') || urlParams.get('refreshToken');
     
     if (accessToken) {
       // OAuth callback - save token and redirect

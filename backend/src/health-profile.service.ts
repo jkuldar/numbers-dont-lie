@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { encrypt, decrypt, encryptArray, decryptArray } from './encryption';
 
 type SummaryPeriod = 'week' | 'month';
 
@@ -49,8 +50,8 @@ export class HealthProfileService {
       pushUpsCount: data.pushUpsCount,
       squatsCount: data.squatsCount,
       occupationType: data.occupationType,
-      medicalConditions: data.medicalConditions || [],
-      medications: data.medications || [],
+      medicalConditions: encryptArray(data.medicalConditions || []),
+      medications: encryptArray(data.medications || []),
     };
 
     // Upsert health profile
@@ -353,10 +354,22 @@ export class HealthProfileService {
       where: { userId },
     });
 
+    const activityEntries = await this.prisma.activityEntry.findMany({
+      where: { userId },
+      orderBy: { loggedAt: 'asc' },
+    });
+
+    const habitLogs = await this.prisma.habitLog.findMany({
+      where: { userId },
+      orderBy: { loggedDate: 'asc' },
+    });
+
     const exportData = {
       user,
       healthProfile: decryptedHealthProfile,
       weightHistory,
+      activityEntries,
+      habitLogs,
       privacySettings,
       exportedAt: new Date().toISOString(),
     };
@@ -366,7 +379,15 @@ export class HealthProfileService {
 
   private decryptProfile(profile: any) {
     if (!profile) return profile;
-    return profile;
+    return {
+      ...profile,
+      medicalConditions: profile.medicalConditions
+        ? decryptArray(profile.medicalConditions)
+        : [],
+      medications: profile.medications
+        ? decryptArray(profile.medications)
+        : [],
+    };
   }
 
   private async recalculateDerivedMetrics(userId: string) {

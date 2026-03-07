@@ -34,7 +34,16 @@ export class API {
       credentials: 'include',
     };
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, config);
+    let response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+    // Auto-refresh on 401
+    if (response.status === 401 && !options._retried) {
+      const refreshed = await this.tryRefreshToken();
+      if (refreshed) {
+        config.headers['Authorization'] = `Bearer ${this.token}`;
+        response = await fetch(`${this.baseURL}${endpoint}`, { ...config, _retried: true });
+      }
+    }
 
     if (!response.ok) {
       const error = new Error(`HTTP ${response.status}`);
@@ -46,6 +55,34 @@ export class API {
     }
 
     return response.json();
+  }
+
+  async tryRefreshToken() {
+    const refreshToken = localStorage.getItem('ndli_refresh_token');
+    if (!refreshToken) return false;
+
+    try {
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) return false;
+
+      const data = await response.json();
+      if (data.accessToken) {
+        this.setToken(data.accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem('ndli_refresh_token', data.refreshToken);
+        }
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   // Health check
@@ -225,6 +262,9 @@ export class API {
     if (data.accessToken) {
       this.setToken(data.accessToken);
     }
+    if (data.refreshToken) {
+      localStorage.setItem('ndli_refresh_token', data.refreshToken);
+    }
     return data;
   }
 
@@ -275,6 +315,9 @@ export class API {
     const data = await response.json();
     if (data.accessToken) {
       this.setToken(data.accessToken);
+    }
+    if (data.refreshToken) {
+      localStorage.setItem('ndli_refresh_token', data.refreshToken);
     }
     return data;
   }
