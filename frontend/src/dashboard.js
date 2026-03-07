@@ -103,18 +103,9 @@ export class Dashboard {
 
         <!-- Quick Actions -->
         <div class="quick-actions">
-          <button class="action-btn" id="add-weight-btn">
-            <span class="icon">⚖️</span>
-            <span>Log Weight</span>
-          </button>
-          <button class="action-btn" id="add-activity-btn">
-            <span class="icon">🏃</span>
-            <span>Log Activity</span>
-          </button>
-          <button class="action-btn" id="refresh-insights-btn">
-            <span class="icon">🔄</span>
-            <span>Refresh Insights</span>
-          </button>
+          <button class="action-btn" id="add-weight-btn">Log Weight</button>
+          <button class="action-btn" id="add-activity-btn">Log Activity</button>
+          <button class="action-btn" id="refresh-insights-btn">Refresh Insights</button>
         </div>
       </div>
     `;
@@ -197,8 +188,8 @@ export class Dashboard {
     if (!activityStreak && !habitStreak) return '';
     return `
       <div class="streaks-row">
-        ${activityStreak > 0 ? `<div class="streak-badge">🔥 ${activityStreak}-day activity streak</div>` : ''}
-        ${habitStreak > 0 ? `<div class="streak-badge">⭐ ${habitStreak}-day habit streak</div>` : ''}
+        ${activityStreak > 0 ? `<div class="streak-badge">${activityStreak}-day activity streak</div>` : ''}
+        ${habitStreak > 0 ? `<div class="streak-badge">${habitStreak}-day habit streak</div>` : ''}
       </div>
     `;
   }

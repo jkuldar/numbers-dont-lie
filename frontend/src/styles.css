@@ -199,9 +199,13 @@ body {
   transition: all 0.2s ease;
 }
 
-.btn-logout {
+.btn-logout,
+.btn-darkmode {
   width: auto;
   padding: 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .btn-logout .btn-icon__label {
@@ -470,23 +474,21 @@ body {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 2rem;
+  padding: 0.75rem 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text);
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .action-btn:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(106, 27, 154, 0.2);
-}
-
-.action-btn .icon {
-  font-size: 1.5rem;
+  color: var(--primary);
+  background: rgba(106, 27, 154, 0.05);
 }
 
 /* Empty State */

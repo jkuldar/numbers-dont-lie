@@ -44,7 +44,7 @@ class App {
           <button class="nav-link" data-view="privacy">Privacy</button>
         </div>
         <div class="nav-actions">
-          <button class="btn-icon" id="darkmode-btn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+          <button class="btn-icon btn-darkmode" id="darkmode-btn" title="Toggle dark mode" aria-label="Toggle dark mode">Dark</button>
           <button class="btn-icon btn-logout" id="logout-btn" title="Logi välja" aria-label="Logi välja">
             <span class="btn-icon__glyph">⏻</span>
             <span class="btn-icon__label">Logi välja</span>
@@ -397,7 +397,7 @@ class App {
   updateDarkModeBtn(btn) {
     if (!btn) return;
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.textContent = isDark ? 'Light' : 'Dark';
     btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
   }
 
