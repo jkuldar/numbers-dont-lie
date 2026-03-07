@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { createHash } from 'crypto';
-import { decryptArray } from './encryption';
 
 interface HealthContext {
     userId: string;
@@ -223,9 +222,7 @@ export class AIService {
     if (profile.fitnessLevel) {
       context.fitness = {
         fitnessLevel: profile.fitnessLevel,
-        medicalConditions: includeMedical
-          ? decryptArray(profile.medicalConditions || [])
-          : undefined,
+        medicalConditions: includeMedical ? profile.medicalConditions : undefined,
       };
     }
 

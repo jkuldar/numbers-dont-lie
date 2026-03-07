@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { authenticator } from 'otplib';
 import * as QRCode from 'qrcode';
 import { PrismaService } from './prisma.service';
-import { encrypt, decrypt } from './encryption';
 
 @Injectable()
 export class TwoFAService {
@@ -20,7 +19,7 @@ export class TwoFAService {
     // Store secret temporarily (not enabled yet)
     await this.prisma.user.update({
       where: { id: userId },
-      data: { twoFactorSecret: encrypt(secret) },
+      data: { twoFactorSecret: secret },
     });
 
     // Generate QR code
@@ -36,12 +35,10 @@ export class TwoFAService {
       throw new Error('2FA secret not found');
     }
 
-    const secret = decrypt(user.twoFactorSecret);
-
     // Verify the token
     const isValid = authenticator.verify({
       token,
-      secret,
+      secret: user.twoFactorSecret,
     });
 
     if (!isValid) {
@@ -64,12 +61,10 @@ export class TwoFAService {
       throw new Error('2FA not configured');
     }
 
-    const secret = decrypt(user.twoFactorSecret);
-
     // Verify the token before disabling
     const isValid = authenticator.verify({
       token,
-      secret,
+      secret: user.twoFactorSecret,
     });
 
     if (!isValid) {
@@ -97,7 +92,7 @@ export class TwoFAService {
 
     return authenticator.verify({
       token,
-      secret: decrypt(user.twoFactorSecret),
+      secret: user.twoFactorSecret,
     });
   }
 }
