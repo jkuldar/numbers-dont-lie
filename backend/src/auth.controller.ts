@@ -6,7 +6,7 @@ import { GoogleAuthGuard } from './google-auth.guard';
 import { GithubAuthGuard } from './github-auth.guard';
 import { Request, Response } from 'express';
 
-type AuthenticatedRequest = Request & { user: { id: string; email: string } };
+type AuthenticatedRequest = Request & { user: { userId: string; email: string } };
 
 @Controller('auth')
 export class AuthController {
@@ -148,7 +148,7 @@ export class AuthController {
   @Get('2fa/status')
   @UseGuards(JwtAuthGuard)
   async get2FAStatus(@Req() req: AuthenticatedRequest) {
-    const user = await this.authService.getUser(req.user.id);
+    const user = await this.authService.getUser(req.user.userId);
     return { enabled: user?.twoFactorEnabled ?? false };
   }
 
@@ -156,7 +156,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async generate2FA(@Req() req: AuthenticatedRequest) {
     try {
-      return await this.twoFAService.generateSecret(req.user.id, req.user.email);
+      return await this.twoFAService.generateSecret(req.user.userId, req.user.email);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }
@@ -169,7 +169,7 @@ export class AuthController {
       throw new BadRequestException('Token required');
     }
     try {
-      return await this.twoFAService.enableTwoFactor(req.user.id, body.token);
+      return await this.twoFAService.enableTwoFactor(req.user.userId, body.token);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }
@@ -182,7 +182,7 @@ export class AuthController {
       throw new BadRequestException('Token required');
     }
     try {
-      return await this.twoFAService.disableTwoFactor(req.user.id, body.token);
+      return await this.twoFAService.disableTwoFactor(req.user.userId, body.token);
     } catch (error) {
       throw new BadRequestException((error as Error).message);
     }
