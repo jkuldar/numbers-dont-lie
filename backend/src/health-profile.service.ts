@@ -349,6 +349,16 @@ export class HealthProfileService {
       orderBy: { recordedAt: 'asc' },
     });
 
+    const activityEntries = await this.prisma.activityEntry.findMany({
+      where: { userId },
+      orderBy: { loggedAt: 'asc' },
+    });
+
+    const habitLogs = await this.prisma.habitLog.findMany({
+      where: { userId },
+      orderBy: { loggedDate: 'asc' },
+    });
+
     const privacySettings = await this.prisma.privacySettings.findUnique({
       where: { userId },
     });
@@ -357,6 +367,8 @@ export class HealthProfileService {
       user,
       healthProfile: decryptedHealthProfile,
       weightHistory,
+      activityEntries,
+      habitLogs,
       privacySettings,
       exportedAt: new Date().toISOString(),
     };
