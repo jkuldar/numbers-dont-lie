@@ -8,13 +8,14 @@ import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
-  // Nodemailer SMTP transport (used only when RESEND_API_KEY is NOT set)
+  // Nodemailer SMTP transport (used only when RESEND_API_KEY is NOT set).
+  // Supports both SMTP_* and EMAIL_* env var naming conventions.
   private mailTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'localhost',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+    host: process.env.SMTP_HOST || process.env.EMAIL_HOST || 'localhost',
+    port: parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587'),
+    secure: (process.env.SMTP_SECURE || process.env.EMAIL_SECURE) === 'true',
+    auth: (process.env.SMTP_USER || process.env.EMAIL_USER)
+      ? { user: process.env.SMTP_USER || process.env.EMAIL_USER, pass: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD }
       : undefined,
   });
 
@@ -347,7 +348,8 @@ export class AuthService {
       }
     }
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost') {
+    const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_HOST;
+    if (smtpHost && smtpHost !== 'localhost') {
       // ── Nodemailer SMTP fallback ─────────────────────────────────────────────
       try {
         await this.mailTransporter.sendMail({ from, to, subject, html });
