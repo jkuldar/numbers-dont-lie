@@ -376,20 +376,12 @@ export class Auth {
     submitBtn.textContent = 'Creating account...';
 
     try {
-      const result = await this.api.register(email, password);
+      await this.api.register(email, password);
       form.reset();
-
-      // Backend auto-verifies the user when no email transport is available
-      // (no RESEND_API_KEY / SMTP configured, or delivery failed).
-      if (result && result.message && result.message.includes('You can now log in')) {
-        this.showSuccess('Account created! You can now log in.');
-        setTimeout(() => this.switchMode('login'), 1500);
-      } else {
-        this.showSuccess('Account created! Check your email to verify your account.');
-        setTimeout(() => {
-          this.showVerificationNotice(email);
-        }, 2000);
-      }
+      this.showSuccess('Account created! Check your email to verify your account.');
+      setTimeout(() => {
+        this.showVerificationNotice(email);
+      }, 2000);
       
     } catch (error) {
       this.showError(error.message || 'Registration failed');

@@ -53,15 +53,9 @@ export class AuthService {
       data: { email, passwordHash, verificationCode },
     });
 
-    // Send verification email; if no email transport is available, auto-verify so
-    // email/password login still works without an email service configured.
-    const emailSent = await this.sendVerificationEmail(email, verificationCode, user.id);
+    await this.sendVerificationEmail(email, verificationCode);
 
-    if (emailSent) {
-      return { message: 'User registered. Check your email for verification link.' };
-    } else {
-      return { message: 'User registered successfully. You can now log in.' };
-    }
+    return { message: 'User registered. Check your email for verification link.' };
   }
 
   async login(email: string, password: string, twoFactorToken?: string) {
@@ -143,7 +137,7 @@ export class AuthService {
 
     const verificationCode = randomBytes(32).toString('hex');
     await this.prisma.user.update({ where: { id: user.id }, data: { verificationCode } });
-    await this.sendVerificationEmail(email, verificationCode, user.id);
+    await this.sendVerificationEmail(email, verificationCode);
 
     return { message: 'If that email is registered, a new verification link has been sent.' };
   }
@@ -245,10 +239,10 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  private async sendVerificationEmail(email: string, code: string, userId?: string): Promise<boolean> {
+  private async sendVerificationEmail(email: string, code: string): Promise<void> {
     const verificationUrl = `${this.frontendUrl}/verify?code=${code}`;
 
-    // Always log the verification URL so it's visible in Railway logs
+    // Log the verification URL so it's visible in Railway logs as a fallback
     console.log('╔════════════════════════════════════════════════════════════╗');
     console.log('║  EMAIL VERIFICATION');
     console.log('╠════════════════════════════════════════════════════════════╣');
@@ -256,7 +250,7 @@ export class AuthService {
     console.log(`║  Verify URL: ${verificationUrl}`);
     console.log('╚════════════════════════════════════════════════════════════╝');
 
-    const delivered = await this.sendEmail({
+    await this.sendEmail({
       to: email,
       subject: 'Verify your Numbers Don\'t Lie account',
       html: `
@@ -276,18 +270,6 @@ export class AuthService {
         </div>
       `,
     });
-
-    // If email could not be delivered (no transport or send failed) → auto-verify
-    // so users are never permanently locked out due to missing email config.
-    if (!delivered && userId) {
-      console.warn(`⚠️  Email not delivered — auto-verifying user ${email}`);
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { emailVerified: true },
-      });
-    }
-
-    return delivered;
   }
 
   private async sendPasswordResetEmail(email: string, resetToken: string) {
