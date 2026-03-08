@@ -62,12 +62,18 @@ export class Charts {
     // Destroy previous chart
     if (this.charts.weight) {
       this.charts.weight.destroy();
+      this.charts.weight = null;
     }
 
     // Sort by date
-    const sorted = [...weightHistory].sort((a, b) => 
+    const sorted = [...(weightHistory || [])].sort((a, b) => 
       new Date(a.recordedAt) - new Date(b.recordedAt)
     );
+
+    if (sorted.length === 0) {
+      canvas.parentElement.innerHTML = '<p class="chart-empty">No weight data yet. Log your first weight entry to see your progress.</p>';
+      return;
+    }
 
     const labels = sorted.map(entry => 
       new Date(entry.recordedAt).toLocaleDateString()
@@ -252,11 +258,18 @@ export class Charts {
 
     if (this.charts.wellness) {
       this.charts.wellness.destroy();
+      this.charts.wellness = null;
     }
 
     const sorted = [...(wellnessHistory || [])].sort((a, b) =>
       new Date(a.date) - new Date(b.date)
     );
+
+    if (sorted.length === 0) {
+      canvas.parentElement.innerHTML = '<p class="chart-empty">No wellness data yet. Update your health profile to start tracking.</p>';
+      return;
+    }
+
     const labels = sorted.map(entry =>
       new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     );

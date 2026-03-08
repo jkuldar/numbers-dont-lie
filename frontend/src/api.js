@@ -272,6 +272,9 @@ export class API {
     if (data.accessToken) {
       this.setToken(data.accessToken);
     }
+    if (data.refreshToken) {
+      localStorage.setItem('ndli_refresh_token', data.refreshToken);
+    }
     return data;
   }
 
@@ -322,6 +325,9 @@ export class API {
     const data = await response.json();
     if (data.accessToken) {
       this.setToken(data.accessToken);
+    }
+    if (data.refreshToken) {
+      localStorage.setItem('ndli_refresh_token', data.refreshToken);
     }
     return data;
   }

@@ -52,10 +52,15 @@ export class AuthService {
       data: { email, passwordHash, verificationCode },
     });
 
-    // Send verification email
-    await this.sendVerificationEmail(email, verificationCode);
+    // Send verification email; if no email transport is available, auto-verify so
+    // email/password login still works without an email service configured.
+    const emailSent = await this.sendVerificationEmail(email, verificationCode, user.id);
 
-    return { message: 'User registered. Check your email for verification link.' };
+    if (emailSent) {
+      return { message: 'User registered. Check your email for verification link.' };
+    } else {
+      return { message: 'User registered successfully. You can now log in.' };
+    }
   }
 
   async login(email: string, password: string, twoFactorToken?: string) {
@@ -137,7 +142,7 @@ export class AuthService {
 
     const verificationCode = randomBytes(32).toString('hex');
     await this.prisma.user.update({ where: { id: user.id }, data: { verificationCode } });
-    await this.sendVerificationEmail(email, verificationCode);
+    await this.sendVerificationEmail(email, verificationCode, user.id);
 
     return { message: 'If that email is registered, a new verification link has been sent.' };
   }
@@ -239,19 +244,31 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  private async sendVerificationEmail(email: string, code: string) {
+  private async sendVerificationEmail(email: string, code: string, userId?: string): Promise<boolean> {
     const verificationUrl = `${this.frontendUrl}/verify?code=${code}`;
 
-    // Always log in dev so you can test without real email
-    if (process.env.NODE_ENV !== 'production') {
+    const emailWillBeSent = !!(process.env.RESEND_API_KEY ||
+      (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost'));
+
+    // Always log in dev; in production log only when no transport is configured
+    if (process.env.NODE_ENV !== 'production' || !emailWillBeSent) {
       console.log('╔════════════════════════════════════════════════════════════╗');
-      console.log('║  EMAIL VERIFICATION CODE (Development Only)               ║');
+      console.log(`║  EMAIL VERIFICATION ${emailWillBeSent ? '(Development)' : '(NO TRANSPORT — auto-verified)'}`);
       console.log('╠════════════════════════════════════════════════════════════╣');
-      console.log(`║  Email: ${email.padEnd(48)} ║`);
-      console.log(`║  Code:  ${code.substring(0, 48).padEnd(48)} ║`);
-      console.log('║  ────────────────────────────────────────────────────────  ║');
+      console.log(`║  Email: ${email}`);
       console.log(`║  Verify URL: ${verificationUrl}`);
       console.log('╚════════════════════════════════════════════════════════════╝');
+    }
+
+    // No email transport → auto-verify the user so login works without email
+    if (!emailWillBeSent) {
+      if (userId) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { emailVerified: true },
+        });
+      }
+      return false;
     }
 
     await this.sendEmail({
@@ -274,6 +291,7 @@ export class AuthService {
         </div>
       `,
     });
+    return true;
   }
 
   private async sendPasswordResetEmail(email: string, resetToken: string) {
