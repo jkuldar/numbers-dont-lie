@@ -247,31 +247,15 @@ export class AuthService {
   private async sendVerificationEmail(email: string, code: string, userId?: string): Promise<boolean> {
     const verificationUrl = `${this.frontendUrl}/verify?code=${code}`;
 
-    const emailWillBeSent = !!(process.env.RESEND_API_KEY ||
-      (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost'));
+    // Always log the verification URL so it's visible in Railway logs
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║  EMAIL VERIFICATION');
+    console.log('╠════════════════════════════════════════════════════════════╣');
+    console.log(`║  Email: ${email}`);
+    console.log(`║  Verify URL: ${verificationUrl}`);
+    console.log('╚════════════════════════════════════════════════════════════╝');
 
-    // Always log in dev; in production log only when no transport is configured
-    if (process.env.NODE_ENV !== 'production' || !emailWillBeSent) {
-      console.log('╔════════════════════════════════════════════════════════════╗');
-      console.log(`║  EMAIL VERIFICATION ${emailWillBeSent ? '(Development)' : '(NO TRANSPORT — auto-verified)'}`);
-      console.log('╠════════════════════════════════════════════════════════════╣');
-      console.log(`║  Email: ${email}`);
-      console.log(`║  Verify URL: ${verificationUrl}`);
-      console.log('╚════════════════════════════════════════════════════════════╝');
-    }
-
-    // No email transport → auto-verify the user so login works without email
-    if (!emailWillBeSent) {
-      if (userId) {
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { emailVerified: true },
-        });
-      }
-      return false;
-    }
-
-    await this.sendEmail({
+    const delivered = await this.sendEmail({
       to: email,
       subject: 'Verify your Numbers Don\'t Lie account',
       html: `
@@ -291,7 +275,18 @@ export class AuthService {
         </div>
       `,
     });
-    return true;
+
+    // If email could not be delivered (no transport or send failed) → auto-verify
+    // so users are never permanently locked out due to missing email config.
+    if (!delivered && userId) {
+      console.warn(`⚠️  Email not delivered — auto-verifying user ${email}`);
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { emailVerified: true },
+      });
+    }
+
+    return delivered;
   }
 
   private async sendPasswordResetEmail(email: string, resetToken: string) {
@@ -324,27 +319,32 @@ export class AuthService {
    * - Falls back to nodemailer/SMTP when SMTP_HOST is configured.
    * - Logs a warning and skips silently when neither is available.
    */
-  private async sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+  /** Returns true only if the email was successfully delivered. */
+  private async sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
     const from = process.env.EMAIL_FROM || process.env.SMTP_FROM || 'Numbers Don\'t Lie <onboarding@resend.dev>';
 
     if (process.env.RESEND_API_KEY) {
       // ── Resend REST API ──────────────────────────────────────────────────────
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ from, to, subject, html }),
-      });
-
-      if (!res.ok) {
-        const body = await res.text();
-        console.error('Resend API error:', res.status, body);
-      } else {
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ from, to, subject, html }),
+        });
+        if (!res.ok) {
+          const body = await res.text();
+          console.error('Resend API error:', res.status, body);
+          return false;
+        }
         console.log(`✉️  Email sent via Resend to ${to}`);
+        return true;
+      } catch (err) {
+        console.error('Resend fetch failed:', err);
+        return false;
       }
-      return;
     }
 
     if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'localhost') {
@@ -352,14 +352,16 @@ export class AuthService {
       try {
         await this.mailTransporter.sendMail({ from, to, subject, html });
         console.log(`✉️  Email sent via SMTP to ${to}`);
+        return true;
       } catch (error) {
         console.error('SMTP send failed:', error);
+        return false;
       }
-      return;
     }
 
     // No transport configured
-    console.warn(`⚠️  No email transport configured (set RESEND_API_KEY or SMTP_HOST). Email to ${to} was NOT sent.`);
+    console.warn(`⚠️  No email transport configured. Email to ${to} was NOT sent.`);
+    return false;
   }
 
   async deleteAccount(userId: string): Promise<void> {
