@@ -1,9 +1,10 @@
 # Numbers Don't Lie
 
-A wellness platform with AI-powered health insights, health tracking, and data visualization.
-
 App is available on URL: https://numbers-dont-lie-frontend-production.up.railway.app/
 
+A wellness platform with AI-powered health insights, health tracking, and data visualization.
+
+Testing question answers in testing_questions.md fail!
 
 ## Tech Stack
 
